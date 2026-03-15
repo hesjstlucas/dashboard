@@ -15,7 +15,8 @@ import {
   canEditGuidelines,
   canGrantLeaderboardPoints,
   canIssuePunishment,
-  canViewIdentities
+  canViewIdentities,
+  getRank
 } from "@/lib/permissions";
 
 const STORAGE_KEY = "tlrp-dashboard-state-v4";
@@ -78,28 +79,35 @@ export function DemoProvider({ children }) {
   const value = useMemo(() => {
     const linkedStaff =
       state.staff.find((member) => member.id === sessionState.session?.linkedStaffId) || null;
-    const currentUser =
-      linkedStaff || {
-        id: "guest",
-        rankKey: "guest",
-        displayName: sessionState.session?.discordUser?.globalName || "Guest",
-        codename: "TLRP-Guest",
-        discordTag: sessionState.session?.discordUser?.username || "No Discord account linked",
-        department: "Visitor",
-        grade: 0,
-        leaderboardPoints: 0,
-        staffOfWeek: 0,
-        activity: 0,
-        reviews: [],
-        overview: {
-          joinedAt: "-",
-          lastPatrol: "-",
-          patrolHours: 0,
-          moderationActions: 0,
-          adminActions: 0,
-          shiftStatus: "Not linked"
+    const sessionRankKey = sessionState.session?.rankKey || "guest";
+    const sessionRank = getRank(sessionRankKey);
+    const currentUser = linkedStaff
+      ? {
+          ...linkedStaff,
+          rankKey: sessionRankKey,
+          department: sessionRank.label
         }
-      };
+      : {
+          id: sessionState.authenticated ? sessionState.session?.discordUser?.id || "discord-user" : "guest",
+          rankKey: sessionRankKey,
+          displayName: sessionState.session?.discordUser?.globalName || "Guest",
+          codename: "TLRP-Guest",
+          discordTag: sessionState.session?.discordUser?.username || "No Discord account linked",
+          department: sessionRank.label,
+          grade: 0,
+          leaderboardPoints: 0,
+          staffOfWeek: 0,
+          activity: 0,
+          reviews: [],
+          overview: {
+            joinedAt: "-",
+            lastPatrol: "-",
+            patrolHours: 0,
+            moderationActions: 0,
+            adminActions: 0,
+            shiftStatus: sessionState.authenticated ? "Role-linked" : "Not linked"
+          }
+        };
 
     const revealIdentity = canViewIdentities(sessionState.authenticated);
     const visibleStaff = state.staff.map((member) => getPublicStaffView(member, revealIdentity));

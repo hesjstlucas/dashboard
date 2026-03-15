@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { encodeSession, hasDiscordAuthConfig, SESSION_COOKIE } from "@/lib/auth";
+import { encodeSession, getDiscordRedirectUri, hasDiscordAuthConfig, SESSION_COOKIE } from "@/lib/auth";
 import { resolveStaffByDiscordId } from "@/lib/mock-data";
+import { resolveHighestRankFromRoleIds } from "@/lib/discord-role-groups";
 
-async function exchangeCodeForUser(code) {
+async function exchangeCodeForUser(code, requestUrl) {
   const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
     headers: {
@@ -13,7 +14,7 @@ async function exchangeCodeForUser(code) {
       client_secret: process.env.DISCORD_CLIENT_SECRET,
       grant_type: "authorization_code",
       code,
-      redirect_uri: process.env.DISCORD_REDIRECT_URI
+      redirect_uri: getDiscordRedirectUri(requestUrl)
     }),
     cache: "no-store"
   });
@@ -37,6 +38,29 @@ async function exchangeCodeForUser(code) {
   return userResponse.json();
 }
 
+async function fetchGuildRoleIds(userId) {
+  if (!process.env.DISCORD_GUILD_ID || !process.env.DISCORD_BOT_TOKEN) {
+    return [];
+  }
+
+  const memberResponse = await fetch(
+    `https://discord.com/api/v10/guilds/${process.env.DISCORD_GUILD_ID}/members/${userId}`,
+    {
+      headers: {
+        Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`
+      },
+      cache: "no-store"
+    }
+  );
+
+  if (!memberResponse.ok) {
+    return [];
+  }
+
+  const member = await memberResponse.json();
+  return member.roles || [];
+}
+
 export async function GET(request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
@@ -46,7 +70,9 @@ export async function GET(request) {
   }
 
   try {
-    const discordUser = await exchangeCodeForUser(code);
+    const discordUser = await exchangeCodeForUser(code, request.url);
+    const roleIds = await fetchGuildRoleIds(discordUser.id);
+    const rankKey = resolveHighestRankFromRoleIds(roleIds);
     const linkedStaff = resolveStaffByDiscordId(discordUser.id);
     const session = {
       authenticated: true,
@@ -55,7 +81,9 @@ export async function GET(request) {
         username: discordUser.username,
         globalName: discordUser.global_name || discordUser.username
       },
-      linkedStaffId: linkedStaff?.id || null
+      linkedStaffId: linkedStaff?.id || null,
+      roleIds,
+      rankKey
     };
 
     const response = NextResponse.redirect(new URL("/", url));

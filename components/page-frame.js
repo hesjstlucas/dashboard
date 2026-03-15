@@ -42,7 +42,6 @@ export function PageFrame({ title, description, children }) {
   const pathname = usePathname();
   const { currentUser, abilities, sessionState, logout } = useDemo();
   const isAuthenticated = sessionState.authenticated;
-  const isLinked = currentUser.id !== "guest";
 
   return (
     <div className="stack">
@@ -65,11 +64,9 @@ export function PageFrame({ title, description, children }) {
               : "Not signed in"}
           </strong>
           <span className="muted">
-            {isLinked
-              ? `${abilities.rank.label} | ${currentUser.discordTag}`
-              : isAuthenticated
-                ? "Logged in, but this Discord account is not linked to a seeded staff record yet."
-                : sessionState.configured
+            {isAuthenticated
+              ? `${abilities.rank.label} permissions | highest matching Discord role | ${currentUser.discordTag}`
+              : sessionState.configured
                 ? "Login unlocks your staff identity and permissions."
                 : "Configure Discord OAuth env vars to enable login."}
           </span>
