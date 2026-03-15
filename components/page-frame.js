@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useDemo } from "@/components/demo-provider";
@@ -45,7 +46,9 @@ export function PageFrame({ title, description, children }) {
 
   return (
     <div className="stack">
-      <LoginNotice />
+      <Suspense fallback={null}>
+        <LoginNotice />
+      </Suspense>
       <CommandBar />
 
       <header className="page-header">
