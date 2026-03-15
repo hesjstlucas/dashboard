@@ -2,9 +2,10 @@
 
 A Next.js staff portal for TLRP with:
 
-- Discord login with hidden identities until sign-in
+- A fuller Melonly-style multi-page operations portal
 - Staff overview and roster search
 - Grades tab
+- Activity, shifts, audit logs, LOA, integrations, and settings pages
 - Leaderboard with staff reviews, Staff of the Week counts, activity, and points
 - Punishment logging with Discord DM notifications
 - ER:LC moderation and admin command launcher
@@ -43,11 +44,11 @@ DISCORD_REDIRECT_URI=
 SESSION_SECRET=
 ```
 
-If those are not set, the dashboard uses built-in mock data so the UI still works during local development. Discord login requires `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_REDIRECT_URI`.
+If those are not set, the dashboard uses built-in mock data so the UI still works during local development. The Discord OAuth routes are still present for later, but the current portal UI does not depend on login.
 
 ## Important note
 
-The dashboard includes a real Discord OAuth flow hook, but the roster, grades, punishments, and guidelines are still stored in local browser state right now. For a production community portal, connect those actions to a real database before using it as your live staff source of truth.
+The portal currently stores roster, grades, punishments, guidelines, and module content in local browser state. For a production community portal, connect those actions to a real database before using it as your live staff source of truth.
 
 ## Test
 

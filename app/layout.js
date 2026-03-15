@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
+import Image from "next/image";
 import { DemoProvider } from "@/components/demo-provider";
 import { NavLink } from "@/components/nav-link";
 
@@ -12,10 +13,16 @@ const links = [
   { href: "/", label: "Overview" },
   { href: "/staff", label: "Staff" },
   { href: "/grades", label: "Grades" },
+  { href: "/activity", label: "Activity" },
+  { href: "/shifts", label: "Shifts" },
   { href: "/punishments", label: "Punishments" },
+  { href: "/audit", label: "Audit Logs" },
+  { href: "/loa", label: "LOA" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/ranks", label: "Ranks" },
-  { href: "/guidelines", label: "Guidelines" }
+  { href: "/guidelines", label: "Guidelines" },
+  { href: "/integrations", label: "Integrations" },
+  { href: "/settings", label: "Settings" }
 ];
 
 export default function RootLayout({ children }) {
@@ -27,9 +34,9 @@ export default function RootLayout({ children }) {
             <aside className="sidebar">
               <div className="brand">
                 <Link href="/">
-                  <h1>TLRP</h1>
+                  <Image alt="TLRP logo" height={58} priority src="/tlrp-logo.svg" width={164} />
                 </Link>
-                <p>Discord and ER:LC staff dashboard</p>
+                <p>TLRP operations portal</p>
               </div>
               <nav className="nav">
                 {links.map((link) => (

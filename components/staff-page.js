@@ -25,17 +25,15 @@ export function StaffPage() {
   return (
     <PageFrame
       title="Staff Directory"
-      description="Search the team, review anonymous or linked profiles, and inspect rank, activity, grade, and review history."
+      description="Search the team and inspect rank, activity, grade, review history, and staff overview details."
     >
       <div className="panel stack">
         <div className="split">
           <div>
             <h3>Roster Search</h3>
-            <p className="muted">
-              Names are hidden until Discord login. Linked staff accounts see the full roster.
-            </p>
+            <p className="muted">Browse staff profiles, departments, reviews, and shift status from one searchable roster.</p>
           </div>
-          <div className="badge ok">{currentUser.rankKey === "guest" ? "Anonymous view" : "Linked view"}</div>
+          <div className="badge ok">{currentUser.rankKey}</div>
         </div>
         <div className="toolbar">
           <input
@@ -54,7 +52,7 @@ export function StaffPage() {
                 <div className="kicker">{member.rankKey}</div>
                 <h3>{member.displayName}</h3>
                 <p className="muted">
-                  {member.department} • {member.discordTag}
+                  {member.department} | {member.discordTag}
                 </p>
               </div>
               <span className="badge ok">Activity {member.activity}/10</span>
@@ -77,7 +75,7 @@ export function StaffPage() {
               <div className="list-item">Joined: {member.overview.joinedAt}</div>
               <div className="list-item">Last patrol: {member.overview.lastPatrol}</div>
               <div className="list-item">
-                Patrol hours: {member.overview.patrolHours} • Mod actions: {member.overview.moderationActions} • Admin actions: {member.overview.adminActions}
+                Patrol hours: {member.overview.patrolHours} | Mod actions: {member.overview.moderationActions} | Admin actions: {member.overview.adminActions}
               </div>
               {member.reviews.map((review, index) => (
                 <div className="list-item" key={`${member.id}-${index}`}>

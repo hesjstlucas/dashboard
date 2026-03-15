@@ -52,7 +52,7 @@ function ConnectionCard({ title, endpoint }) {
 }
 
 function CommandConsole() {
-  const { currentUser, abilities } = useDemo();
+  const { abilities } = useDemo();
   const [command, setCommand] = useState("");
   const [result, setResult] = useState("");
 
@@ -85,13 +85,9 @@ function CommandConsole() {
       <div className="split">
         <div>
           <h3>ER:LC Command Center</h3>
-          <p className="muted">
-            {currentUser.rankKey === "guest"
-              ? "Sign in with Discord to unlock role-based command access."
-              : "Available command templates are filtered by your TLRP rank."}
-          </p>
+          <p className="muted">Available command templates are filtered by the selected TLRP operator rank.</p>
         </div>
-        <span className="badge ok">{currentUser.rankKey === "guest" ? "Locked" : "Ready"}</span>
+        <span className="badge ok">Ready</span>
       </div>
       <div className="chip-row">
         {templates.map((template) => (
@@ -117,8 +113,7 @@ function CommandConsole() {
 }
 
 export function DashboardOverview() {
-  const { visibleStaff, punishments, currentUser, sessionState } = useDemo();
-  const linked = currentUser.id !== "guest";
+  const { visibleStaff, punishments, currentUser, activityFeed, shifts, integrations } = useDemo();
   const activeCases = punishments.filter((entry) => entry.status === "Active").length;
   const averageGrade = Math.round(
     visibleStaff.reduce((total, member) => total + member.grade, 0) / visibleStaff.length
@@ -127,21 +122,19 @@ export function DashboardOverview() {
   return (
     <PageFrame
       title="Staff Overview"
-      description="A Melonly-inspired TLRP operations board with Discord-gated identities, ER:LC command tools, and rank-aware staff controls."
+      description="A Melonly-style TLRP operations board with staff modules, ER:LC command tools, activity tracking, and rank-aware controls."
     >
       <section className="hero panel">
         <div>
-          <div className="kicker">Linked Profile</div>
-          <h3>{linked ? currentUser.displayName : "Sign in to reveal staff identities"}</h3>
+          <div className="kicker">Active Operator</div>
+          <h3>{currentUser.displayName}</h3>
           <p className="muted">
-            {linked
-              ? `Logged in with Discord as ${sessionState.session?.discordUser?.globalName || currentUser.displayName}.`
-              : "Before Discord login, the portal keeps names hidden and only shows anonymous staff cards."}
+            Internal portal preview for TLRP staff systems, grade tracking, infrastructure, and command workflows.
           </p>
         </div>
         <div className="hero-badges">
-          <span className="badge ok">{currentUser.rankKey === "guest" ? "Guest" : currentUser.rankKey}</span>
-          <span className="badge warn">{linked ? "Roster linked" : "Roster hidden"}</span>
+          <span className="badge ok">{currentUser.rankKey}</span>
+          <span className="badge warn">{currentUser.department}</span>
         </div>
       </section>
 
@@ -162,21 +155,57 @@ export function DashboardOverview() {
           <span className="muted">Open strikes, suspensions, and infractions.</span>
         </div>
         <div className="panel stat-card">
-          <span className="kicker">Your activity</span>
+          <span className="kicker">Operator activity</span>
           <strong>{currentUser.activity}/10</strong>
-          <span className="muted">Current activity score for the signed-in staff member.</span>
+          <span className="muted">Current activity score for the selected staff operator.</span>
         </div>
       </section>
 
       <section className="grid cols-2">
         <CommandConsole />
         <div className="panel stack">
-          <h3>Quick Access</h3>
+          <h3>Portal Snapshot</h3>
           <div className="list">
-            <div className="list-item">`/staff` for search and per-user overview cards.</div>
-            <div className="list-item">`/grades` for score updates and leaderboard points.</div>
-            <div className="list-item">`/punishments` for IA, Management, and Directive discipline actions plus Discord DMs.</div>
-            <div className="list-item">`/guidelines` for Directive-only handbook editing.</div>
+            {shifts.slice(0, 2).map((shift) => (
+              <div className="list-item" key={shift.id}>
+                <strong>{shift.name}</strong>
+                <div className="muted">
+                  {shift.window} | {shift.status} | {shift.seats}
+                </div>
+              </div>
+            ))}
+            {integrations.slice(0, 2).map((integration) => (
+              <div className="list-item" key={integration.id}>
+                <strong>{integration.title}</strong>
+                <div className="muted">
+                  {integration.status} | {integration.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid cols-2">
+        <div className="panel stack">
+          <h3>Recent Activity</h3>
+          <div className="list">
+            {activityFeed.slice(0, 4).map((item) => (
+              <div className="list-item" key={item.id}>
+                <strong>{item.title}</strong>
+                <div className="muted">
+                  {item.note} | {item.when}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="panel stack">
+          <h3>Quick Routes</h3>
+          <div className="list">
+            <div className="list-item">Staff, Grades, and Leaderboard keep your performance loop in one place.</div>
+            <div className="list-item">Activity, Shifts, Audit Logs, and LOA fill out the Melonly-style portal structure.</div>
+            <div className="list-item">Integrations and Settings keep Discord and ER:LC wiring visible.</div>
           </div>
         </div>
       </section>
