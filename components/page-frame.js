@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useDemo } from "@/components/demo-provider";
+import { CommandBar } from "@/components/command-bar";
 
 const links = [
   { href: "/", label: "Overview" },
@@ -20,12 +21,33 @@ const links = [
   { href: "/settings", label: "Settings" }
 ];
 
+function LoginNotice() {
+  const searchParams = useSearchParams();
+  const status = searchParams.get("login");
+
+  if (!status) {
+    return null;
+  }
+
+  const messages = {
+    failed: "Discord login failed. Check your Discord OAuth redirect URL and try again.",
+    "discord-not-configured": "Discord OAuth is not configured yet. Add the Discord env vars in Vercel."
+  };
+
+  return <div className="list-item notice-banner">{messages[status] || "Discord login status changed."}</div>;
+}
+
 export function PageFrame({ title, description, children }) {
   const pathname = usePathname();
-  const { currentUser, visibleStaff, abilities, setActiveStaffId } = useDemo();
+  const { currentUser, abilities, sessionState, logout } = useDemo();
+  const isAuthenticated = sessionState.authenticated;
+  const isLinked = currentUser.id !== "guest";
 
   return (
     <div className="stack">
+      <LoginNotice />
+      <CommandBar />
+
       <header className="page-header">
         <div>
           <div className="kicker">TLRP Control Panel</div>
@@ -33,20 +55,30 @@ export function PageFrame({ title, description, children }) {
           <p>{description}</p>
         </div>
         <div className="panel auth-panel stack">
-          <div className="kicker">Operator</div>
-          <strong>{currentUser.displayName}</strong>
-          <span className="muted">{abilities.rank.label}</span>
-          <select
-            aria-label="Select active operator"
-            onChange={(event) => setActiveStaffId(event.target.value)}
-            value={currentUser.id}
-          >
-            {visibleStaff.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.displayName} | {member.rankKey}
-              </option>
-            ))}
-          </select>
+          <div className="kicker">Discord Account</div>
+          <strong>
+            {isAuthenticated
+              ? sessionState.session?.discordUser?.globalName || currentUser.displayName
+              : "Not signed in"}
+          </strong>
+          <span className="muted">
+            {isLinked
+              ? `${abilities.rank.label} | ${currentUser.discordTag}`
+              : isAuthenticated
+                ? "Logged in, but this Discord account is not linked to a seeded staff record yet."
+                : sessionState.configured
+                ? "Login unlocks your staff identity and permissions."
+                : "Configure Discord OAuth env vars to enable login."}
+          </span>
+          {isAuthenticated ? (
+            <button className="secondary" onClick={logout} type="button">
+              Log out
+            </button>
+          ) : (
+            <a className="button-link" href="/api/auth/discord/login">
+              Continue with Discord
+            </a>
+          )}
         </div>
       </header>
 

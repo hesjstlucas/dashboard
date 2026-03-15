@@ -85,7 +85,7 @@ function CommandConsole() {
       <div className="split">
         <div>
           <h3>ER:LC Command Center</h3>
-          <p className="muted">Available command templates are filtered by the selected TLRP operator rank.</p>
+          <p className="muted">Available command templates are filtered by your currently linked staff rank.</p>
         </div>
         <span className="badge ok">Ready</span>
       </div>
@@ -126,7 +126,7 @@ export function DashboardOverview() {
     >
       <section className="hero panel">
         <div>
-          <div className="kicker">Active Operator</div>
+          <div className="kicker">Current Account</div>
           <h3>{currentUser.displayName}</h3>
           <p className="muted">
             Internal portal preview for TLRP staff systems, grade tracking, infrastructure, and command workflows.
@@ -157,7 +157,7 @@ export function DashboardOverview() {
         <div className="panel stat-card">
           <span className="kicker">Operator activity</span>
           <strong>{currentUser.activity}/10</strong>
-          <span className="muted">Current activity score for the selected staff operator.</span>
+          <span className="muted">Current activity score for the active Discord-linked account.</span>
         </div>
       </section>
 

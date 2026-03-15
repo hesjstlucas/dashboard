@@ -14,15 +14,22 @@ import {
   canChangeGrades,
   canEditGuidelines,
   canGrantLeaderboardPoints,
-  canIssuePunishment
+  canIssuePunishment,
+  canViewIdentities
 } from "@/lib/permissions";
 
-const STORAGE_KEY = "tlrp-dashboard-state-v3";
+const STORAGE_KEY = "tlrp-dashboard-state-v4";
 const DemoContext = createContext(null);
 
 export function DemoProvider({ children }) {
   const [state, setState] = useState(initialState);
   const [storageLoaded, setStorageLoaded] = useState(false);
+  const [sessionState, setSessionState] = useState({
+    loaded: false,
+    authenticated: false,
+    configured: false,
+    session: null
+  });
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -42,15 +49,72 @@ export function DemoProvider({ children }) {
     }
   }, [state, storageLoaded]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (mounted) {
+          setSessionState({ loaded: true, ...data });
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setSessionState({
+            loaded: true,
+            authenticated: false,
+            configured: false,
+            session: null
+          });
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const value = useMemo(() => {
+    const linkedStaff =
+      state.staff.find((member) => member.id === sessionState.session?.linkedStaffId) || null;
     const currentUser =
-      state.staff.find((member) => member.id === state.activeStaffId) || state.staff[0];
-    const visibleStaff = state.staff.map((member) => getPublicStaffView(member));
+      linkedStaff || {
+        id: "guest",
+        rankKey: "guest",
+        displayName: sessionState.session?.discordUser?.globalName || "Guest",
+        codename: "TLRP-Guest",
+        discordTag: sessionState.session?.discordUser?.username || "No Discord account linked",
+        department: "Visitor",
+        grade: 0,
+        leaderboardPoints: 0,
+        staffOfWeek: 0,
+        activity: 0,
+        reviews: [],
+        overview: {
+          joinedAt: "-",
+          lastPatrol: "-",
+          patrolHours: 0,
+          moderationActions: 0,
+          adminActions: 0,
+          shiftStatus: "Not linked"
+        }
+      };
+
+    const revealIdentity = canViewIdentities(sessionState.authenticated);
+    const visibleStaff = state.staff.map((member) => getPublicStaffView(member, revealIdentity));
     const leaderboard = buildLeaderboard(visibleStaff);
     const abilities = abilitySummary(currentUser.rankKey);
 
-    function setActiveStaffId(activeStaffId) {
-      setState((current) => ({ ...current, activeStaffId }));
+    async function refreshSession() {
+      const response = await fetch("/api/session", { cache: "no-store" });
+      const data = await response.json();
+      setSessionState({ loaded: true, ...data });
+    }
+
+    async function logout() {
+      await fetch("/api/auth/logout", { method: "POST" });
+      await refreshSession();
     }
 
     function addAuditAndActivity(current, event, targetId, detail) {
@@ -61,10 +125,7 @@ export function DemoProvider({ children }) {
           createAuditEntry(event, currentUser.codename, target?.codename || targetId, detail),
           ...current.auditLogs
         ],
-        activityFeed: [
-          createActivityEntry(event, detail),
-          ...current.activityFeed
-        ]
+        activityFeed: [createActivityEntry(event, detail), ...current.activityFeed]
       };
     }
 
@@ -84,7 +145,12 @@ export function DemoProvider({ children }) {
           )
         };
 
-        return addAuditAndActivity(next, "Leaderboard points updated", targetId, `${amount >= 0 ? "+" : ""}${amount} points`);
+        return addAuditAndActivity(
+          next,
+          "Leaderboard points updated",
+          targetId,
+          `${amount >= 0 ? "+" : ""}${amount} points`
+        );
       });
     }
 
@@ -132,7 +198,7 @@ export function DemoProvider({ children }) {
           next,
           "Punishment issued",
           targetId,
-          `${payload.category} • ${payload.reason || "No reason provided."}`
+          `${payload.category} | ${payload.reason || "No reason provided."}`
         );
       });
 
@@ -161,7 +227,12 @@ export function DemoProvider({ children }) {
           )
         };
 
-        return addAuditAndActivity(next, "Guideline updated", currentUser.id, "Directive edited handbook content");
+        return addAuditAndActivity(
+          next,
+          "Guideline updated",
+          currentUser.id,
+          "Directive edited handbook content"
+        );
       });
     }
 
@@ -171,13 +242,15 @@ export function DemoProvider({ children }) {
       currentUser,
       leaderboard,
       abilities,
-      setActiveStaffId,
+      sessionState,
+      refreshSession,
+      logout,
       updateGrade,
       issuePunishment,
       addLeaderboardPoints,
       updateGuideline
     };
-  }, [state]);
+  }, [state, sessionState]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 }
