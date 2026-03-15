@@ -113,11 +113,12 @@ function CommandConsole() {
 }
 
 export function DashboardOverview() {
-  const { visibleStaff, punishments, currentUser, activityFeed, shifts, integrations } = useDemo();
+  const { visibleStaff, punishments, currentUser, activityFeed, shifts, integrations, liveStaffState } = useDemo();
   const activeCases = punishments.filter((entry) => entry.status === "Active").length;
-  const averageGrade = Math.round(
-    visibleStaff.reduce((total, member) => total + member.grade, 0) / visibleStaff.length
-  );
+  const gradedStaff = visibleStaff.filter((member) => typeof member.grade === "number");
+  const averageGrade = gradedStaff.length
+    ? Math.round(gradedStaff.reduce((total, member) => total + member.grade, 0) / gradedStaff.length)
+    : null;
 
   return (
     <PageFrame
@@ -129,7 +130,9 @@ export function DashboardOverview() {
           <div className="kicker">Current Account</div>
           <h3>{currentUser.displayName}</h3>
           <p className="muted">
-            Internal portal preview for TLRP staff systems, grade tracking, infrastructure, and command workflows.
+            {liveStaffState.configured
+              ? "Live Discord staff data is connected. Missing values stay empty until a real source updates them."
+              : "Connect Discord guild data to load the live staff roster instead of demo placeholders."}
           </p>
         </div>
         <div className="hero-badges">
@@ -146,8 +149,8 @@ export function DashboardOverview() {
         </div>
         <div className="panel stat-card">
           <span className="kicker">Average grade</span>
-          <strong>{averageGrade}%</strong>
-          <span className="muted">Overall staff gradebook average.</span>
+          <strong>{averageGrade === null ? "--" : `${averageGrade}%`}</strong>
+          <span className="muted">Overall staff grade average from real recorded grade values.</span>
         </div>
         <div className="panel stat-card">
           <span className="kicker">Active punishments</span>
@@ -156,10 +159,14 @@ export function DashboardOverview() {
         </div>
         <div className="panel stat-card">
           <span className="kicker">Operator activity</span>
-          <strong>{currentUser.activity}/10</strong>
+          <strong>{typeof currentUser.activity === "number" ? `${currentUser.activity}/10` : "--"}</strong>
           <span className="muted">Current activity score for the active Discord-linked account.</span>
         </div>
       </section>
+
+      {liveStaffState.error ? (
+        <div className="list-item notice-banner">Live Discord roster failed to load: {liveStaffState.error}</div>
+      ) : null}
 
       <section className="grid cols-2">
         <CommandConsole />
@@ -190,14 +197,18 @@ export function DashboardOverview() {
         <div className="panel stack">
           <h3>Recent Activity</h3>
           <div className="list">
-            {activityFeed.slice(0, 4).map((item) => (
-              <div className="list-item" key={item.id}>
-                <strong>{item.title}</strong>
-                <div className="muted">
-                  {item.note} | {item.when}
+            {activityFeed.length ? (
+              activityFeed.slice(0, 4).map((item) => (
+                <div className="list-item" key={item.id}>
+                  <strong>{item.title}</strong>
+                  <div className="muted">
+                    {item.note} | {item.when}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="list-item">No real activity entries have been recorded yet.</div>
+            )}
           </div>
         </div>
         <div className="panel stack">

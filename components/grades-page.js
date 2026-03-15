@@ -28,6 +28,11 @@ export function GradesPage() {
               </tr>
             </thead>
             <tbody>
+              {!visibleStaff.length ? (
+                <tr>
+                  <td colSpan="6">No live staff records are available yet.</td>
+                </tr>
+              ) : null}
               {visibleStaff.map((member) => {
                 const canEdit = canChangeGrades(currentUser.rankKey, member.rankKey);
                 const canPoints = canGrantLeaderboardPoints(currentUser.rankKey, member.rankKey);
@@ -43,14 +48,14 @@ export function GradesPage() {
                           min="0"
                           onChange={(event) => updateGrade(member.id, event.target.value)}
                           type="number"
-                          value={member.grade}
+                          value={member.grade ?? ""}
                         />
                       ) : (
-                        `${member.grade}%`
+                        member.grade === null ? "--" : `${member.grade}%`
                       )}
                     </td>
-                    <td>{member.activity}/10</td>
-                    <td>{member.leaderboardPoints}</td>
+                    <td>{member.activity === null ? "--" : `${member.activity}/10`}</td>
+                    <td>{member.leaderboardPoints ?? "--"}</td>
                     <td>
                       {canPoints ? (
                         <div className="inline-controls">

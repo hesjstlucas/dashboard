@@ -19,12 +19,44 @@ import {
   getRank
 } from "@/lib/permissions";
 
-const STORAGE_KEY = "tlrp-dashboard-state-v4";
+const STORAGE_KEY = "tlrp-dashboard-state-v5";
 const DemoContext = createContext(null);
+
+function mergeStaffWithStoredValues(liveStaff, storedStaff) {
+  const storedByDiscordId = new Map(storedStaff.map((member) => [member.discordId, member]));
+
+  return liveStaff.map((member) => {
+    const stored = storedByDiscordId.get(member.discordId);
+    if (!stored) {
+      return member;
+    }
+
+    return {
+      ...member,
+      grade: stored.grade ?? member.grade,
+      leaderboardPoints: stored.leaderboardPoints ?? member.leaderboardPoints,
+      staffOfWeek: stored.staffOfWeek ?? member.staffOfWeek,
+      activity: stored.activity ?? member.activity,
+      reviews: Array.isArray(stored.reviews) ? stored.reviews : member.reviews,
+      overview: {
+        ...member.overview,
+        lastPatrol: stored.overview?.lastPatrol ?? member.overview.lastPatrol,
+        patrolHours: stored.overview?.patrolHours ?? member.overview.patrolHours,
+        moderationActions: stored.overview?.moderationActions ?? member.overview.moderationActions,
+        adminActions: stored.overview?.adminActions ?? member.overview.adminActions
+      }
+    };
+  });
+}
 
 export function DemoProvider({ children }) {
   const [state, setState] = useState(initialState);
   const [storageLoaded, setStorageLoaded] = useState(false);
+  const [liveStaffState, setLiveStaffState] = useState({
+    loaded: false,
+    configured: false,
+    error: null
+  });
   const [sessionState, setSessionState] = useState({
     loaded: false,
     authenticated: false,
@@ -76,9 +108,51 @@ export function DemoProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/staff", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!mounted) {
+          return;
+        }
+
+        setLiveStaffState({
+          loaded: true,
+          configured: Boolean(data.configured),
+          error: data.error || null
+        });
+
+        if (Array.isArray(data.staff)) {
+          setState((current) => ({
+            ...current,
+            staff: mergeStaffWithStoredValues(data.staff, current.staff)
+          }));
+        }
+      })
+      .catch((error) => {
+        if (mounted) {
+          setLiveStaffState({
+            loaded: true,
+            configured: false,
+            error: error.message
+          });
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const value = useMemo(() => {
     const linkedStaff =
-      state.staff.find((member) => member.id === sessionState.session?.linkedStaffId) || null;
+      state.staff.find(
+        (member) =>
+          member.id === sessionState.session?.linkedStaffId ||
+          member.discordId === sessionState.session?.discordUser?.id
+      ) || null;
     const sessionRankKey = sessionState.session?.rankKey || "guest";
     const sessionRank = getRank(sessionRankKey);
     const currentUser = linkedStaff
@@ -250,6 +324,7 @@ export function DemoProvider({ children }) {
       currentUser,
       leaderboard,
       abilities,
+      liveStaffState,
       sessionState,
       refreshSession,
       logout,

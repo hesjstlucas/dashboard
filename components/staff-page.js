@@ -5,7 +5,7 @@ import { PageFrame } from "@/components/page-frame";
 import { useDemo } from "@/components/demo-provider";
 
 export function StaffPage() {
-  const { visibleStaff, currentUser } = useDemo();
+  const { visibleStaff, currentUser, liveStaffState } = useDemo();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -44,7 +44,12 @@ export function StaffPage() {
         </div>
       </div>
 
+      {!liveStaffState.configured ? (
+        <div className="list-item notice-banner">Discord guild staff sync is not configured yet, so no live staff roster is available.</div>
+      ) : null}
+
       <section className="grid cols-2">
+        {!filtered.length ? <div className="list-item">No staff records match the current search or live sync state yet.</div> : null}
         {filtered.map((member) => (
           <article className="panel stack" key={member.id}>
             <div className="split">
@@ -59,15 +64,15 @@ export function StaffPage() {
             </div>
             <div className="grid cols-3 mini-grid">
               <div className="list-item">
-                <strong>{member.grade}%</strong>
+                <strong>{typeof member.grade === "number" ? `${member.grade}%` : "--"}</strong>
                 <div className="muted">Grade</div>
               </div>
               <div className="list-item">
-                <strong>{member.leaderboardPoints}</strong>
+                <strong>{member.leaderboardPoints ?? "--"}</strong>
                 <div className="muted">Points</div>
               </div>
               <div className="list-item">
-                <strong>{member.staffOfWeek}</strong>
+                <strong>{member.staffOfWeek ?? "--"}</strong>
                 <div className="muted">SOTW wins</div>
               </div>
             </div>
@@ -75,14 +80,18 @@ export function StaffPage() {
               <div className="list-item">Joined: {member.overview.joinedAt}</div>
               <div className="list-item">Last patrol: {member.overview.lastPatrol}</div>
               <div className="list-item">
-                Patrol hours: {member.overview.patrolHours} | Mod actions: {member.overview.moderationActions} | Admin actions: {member.overview.adminActions}
+                Patrol hours: {member.overview.patrolHours ?? "--"} | Mod actions: {member.overview.moderationActions ?? "--"} | Admin actions: {member.overview.adminActions ?? "--"}
               </div>
-              {member.reviews.map((review, index) => (
-                <div className="list-item" key={`${member.id}-${index}`}>
-                  <strong>{review.author}</strong>
-                  <div className="muted">{review.body}</div>
-                </div>
-              ))}
+              {member.reviews.length ? (
+                member.reviews.map((review, index) => (
+                  <div className="list-item" key={`${member.id}-${index}`}>
+                    <strong>{review.author}</strong>
+                    <div className="muted">{review.body}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="list-item">No review data recorded yet.</div>
+              )}
             </div>
           </article>
         ))}

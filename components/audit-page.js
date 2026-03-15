@@ -13,18 +13,22 @@ export function AuditPage() {
     >
       <div className="panel stack">
         <div className="list">
-          {auditLogs.map((entry) => (
-            <div className="list-item" key={entry.id}>
-              <div className="split">
-                <strong>{entry.event}</strong>
-                <span className="muted">{entry.when}</span>
+          {auditLogs.length ? (
+            auditLogs.map((entry) => (
+              <div className="list-item" key={entry.id}>
+                <div className="split">
+                  <strong>{entry.event}</strong>
+                  <span className="muted">{entry.when}</span>
+                </div>
+                <div className="muted">
+                  {entry.actor} {"->"} {entry.target}
+                </div>
+                <div>{entry.detail}</div>
               </div>
-              <div className="muted">
-                {entry.actor} {"->"} {entry.target}
-              </div>
-              <div>{entry.detail}</div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="list-item">No audit events have been recorded yet.</div>
+          )}
         </div>
       </div>
     </PageFrame>

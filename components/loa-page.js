@@ -23,6 +23,11 @@ export function LoaPage() {
               </tr>
             </thead>
             <tbody>
+              {!loaRequests.length ? (
+                <tr>
+                  <td colSpan="4">No LOA data is available yet.</td>
+                </tr>
+              ) : null}
               {loaRequests.map((entry) => (
                 <tr key={entry.id}>
                   <td>{entry.staff}</td>
