@@ -8,5 +8,5 @@ export async function GET(request) {
     return NextResponse.redirect(fallbackUrl);
   }
 
-  return NextResponse.redirect(getDiscordAuthorizeUrl(request.url));
+  return NextResponse.redirect(getDiscordAuthorizeUrl(request));
 }

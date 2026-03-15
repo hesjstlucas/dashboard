@@ -3,7 +3,7 @@ import { encodeSession, getDiscordRedirectUri, hasDiscordAuthConfig, SESSION_COO
 import { resolveStaffByDiscordId } from "@/lib/mock-data";
 import { resolveHighestRankFromRoleIds } from "@/lib/discord-role-groups";
 
-async function exchangeCodeForUser(code, requestUrl) {
+async function exchangeCodeForUser(code, request) {
   const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
     headers: {
@@ -14,7 +14,7 @@ async function exchangeCodeForUser(code, requestUrl) {
       client_secret: process.env.DISCORD_CLIENT_SECRET,
       grant_type: "authorization_code",
       code,
-      redirect_uri: getDiscordRedirectUri(requestUrl)
+      redirect_uri: getDiscordRedirectUri(request)
     }),
     cache: "no-store"
   });
@@ -70,7 +70,7 @@ export async function GET(request) {
   }
 
   try {
-    const discordUser = await exchangeCodeForUser(code, request.url);
+    const discordUser = await exchangeCodeForUser(code, request);
     const roleIds = await fetchGuildRoleIds(discordUser.id);
     const rankKey = resolveHighestRankFromRoleIds(roleIds);
     const linkedStaff = resolveStaffByDiscordId(discordUser.id);
