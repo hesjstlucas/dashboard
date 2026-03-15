@@ -33,3 +33,9 @@ test("management controls points and directive controls guidelines", () => {
   assert.equal(canEditGuidelines("directive"), true);
   assert.equal(canEditGuidelines("management"), false);
 });
+
+test("directive can manage grades and points for any rank", () => {
+  assert.equal(canChangeGrades("directive", "directive"), true);
+  assert.equal(canIssuePunishment("directive", "directive"), true);
+  assert.equal(canGrantLeaderboardPoints("directive", "directive"), true);
+});
