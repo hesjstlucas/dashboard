@@ -10,9 +10,11 @@ export const metadata = {
 
 const links = [
   { href: "/", label: "Overview" },
-  { href: "/staff", label: "Staff Grades" },
+  { href: "/staff", label: "Staff" },
+  { href: "/grades", label: "Grades" },
   { href: "/punishments", label: "Punishments" },
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/ranks", label: "Ranks" },
   { href: "/guidelines", label: "Guidelines" }
 ];
 
@@ -27,7 +29,7 @@ export default function RootLayout({ children }) {
                 <Link href="/">
                   <h1>TLRP</h1>
                 </Link>
-                <p>ER:LC staff dashboard</p>
+                <p>Discord and ER:LC staff dashboard</p>
               </div>
               <nav className="nav">
                 {links.map((link) => (

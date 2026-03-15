@@ -9,32 +9,41 @@ export function LeaderboardPage() {
   return (
     <PageFrame
       title="Leaderboard"
-      description="Rank staff by patrol output, ER:LC activity, and performance grades."
+      description="Compare grades, written staff reviews, Staff of the Week wins, activity scores, and leaderboard points across the TLRP team."
     >
       <div className="panel">
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Staff member</th>
-                <th>Role</th>
+                <th>User</th>
                 <th>Grade</th>
-                <th>Patrol hours</th>
-                <th>ER:LC calls</th>
-                <th>Score</th>
+                <th>Reviews</th>
+                <th>Staff of the Week</th>
+                <th>Activity</th>
+                <th>Points</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>
-              {leaderboard.map((entry, index) => (
+              {leaderboard.map((entry) => (
                 <tr key={entry.id}>
-                  <td>#{index + 1}</td>
-                  <td>{entry.name}</td>
-                  <td>{entry.rankTitle}</td>
+                  <td>
+                    <div>{entry.displayName}</div>
+                    <div className="muted">{entry.rankKey}</div>
+                  </td>
                   <td>{entry.grade}%</td>
-                  <td>{entry.patrolHours}</td>
-                  <td>{entry.erlcCalls}</td>
-                  <td className="value-positive">{entry.score}</td>
+                  <td>
+                    {entry.reviews.map((review, index) => (
+                      <div className="muted" key={`${entry.id}-review-${index}`}>
+                        {review.author}: {review.body}
+                      </div>
+                    ))}
+                  </td>
+                  <td>{entry.staffOfWeek}</td>
+                  <td>{entry.activity}/10</td>
+                  <td>{entry.leaderboardPoints}</td>
+                  <td className="value-positive">{entry.combinedScore}</td>
                 </tr>
               ))}
             </tbody>

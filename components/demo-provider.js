@@ -2,24 +2,32 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
-  GUIDELINES,
-  initialState,
   buildLeaderboard,
-  createPunishmentRecord
+  createPunishmentRecord,
+  getPublicStaffView,
+  initialState
 } from "@/lib/mock-data";
 import {
-  canEditGrade,
+  abilitySummary,
+  canChangeGrades,
+  canEditGuidelines,
+  canGrantLeaderboardPoints,
   canIssuePunishment,
-  getRank
+  canViewIdentities
 } from "@/lib/permissions";
 
-const STORAGE_KEY = "tlrp-dashboard-demo-state";
-
+const STORAGE_KEY = "tlrp-dashboard-state-v2";
 const DemoContext = createContext(null);
 
 export function DemoProvider({ children }) {
   const [state, setState] = useState(initialState);
-  const [hydrated, setHydrated] = useState(false);
+  const [storageLoaded, setStorageLoaded] = useState(false);
+  const [sessionState, setSessionState] = useState({
+    loaded: false,
+    authenticated: false,
+    configured: false,
+    session: null
+  });
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -30,33 +38,85 @@ export function DemoProvider({ children }) {
         window.localStorage.removeItem(STORAGE_KEY);
       }
     }
-    setHydrated(true);
+    setStorageLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (storageLoaded) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [hydrated, state]);
+  }, [state, storageLoaded]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (mounted) {
+          setSessionState({ loaded: true, ...data });
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setSessionState({
+            loaded: true,
+            authenticated: false,
+            configured: false,
+            session: null
+          });
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const value = useMemo(() => {
+    const linkedStaff =
+      state.staff.find((member) => member.id === sessionState.session?.linkedStaffId) || null;
     const currentUser =
-      state.staff.find((member) => member.id === state.activeUserId) || state.staff[0];
-    const currentRank = getRank(currentUser.rankKey);
-    const leaderboard = buildLeaderboard(state.staff);
+      linkedStaff || {
+        id: "guest",
+        rankKey: "guest",
+        displayName: sessionState.session?.discordUser?.globalName || "Guest",
+        codename: "TLRP-Guest",
+        discordTag: sessionState.session?.discordUser?.username || "Not linked",
+        grade: 0,
+        leaderboardPoints: 0,
+        staffOfWeek: 0,
+        activity: 0,
+        reviews: [],
+        overview: {
+          joinedAt: "-",
+          lastPatrol: "-",
+          patrolHours: 0,
+          moderationActions: 0,
+          adminActions: 0
+        }
+      };
 
-    function setActiveUserId(activeUserId) {
-      setState((current) => ({ ...current, activeUserId }));
+    const revealIdentity = canViewIdentities(sessionState.authenticated);
+    const visibleStaff = state.staff.map((member) => getPublicStaffView(member, revealIdentity));
+    const leaderboard = buildLeaderboard(visibleStaff);
+    const abilities = abilitySummary(currentUser.rankKey);
+
+    async function refreshSession() {
+      const response = await fetch("/api/session", { cache: "no-store" });
+      const data = await response.json();
+      setSessionState({ loaded: true, ...data });
     }
 
-    function resetDemo() {
-      setState(initialState);
+    async function logout() {
+      await fetch("/api/auth/logout", { method: "POST" });
+      await refreshSession();
     }
 
-    function updateGrade(targetId, nextGrade) {
+    function addLeaderboardPoints(targetId, amount) {
       setState((current) => {
         const target = current.staff.find((member) => member.id === targetId);
-        if (!target || !canEditGrade(currentUser.rankKey, target.rankKey)) {
+        if (!target || !canGrantLeaderboardPoints(currentUser.rankKey, target.rankKey)) {
           return current;
         }
 
@@ -64,50 +124,93 @@ export function DemoProvider({ children }) {
           ...current,
           staff: current.staff.map((member) =>
             member.id === targetId
-              ? {
-                  ...member,
-                  grade: Math.max(0, Math.min(100, Number(nextGrade) || 0))
-                }
+              ? { ...member, leaderboardPoints: Math.max(0, member.leaderboardPoints + amount) }
               : member
           )
         };
       });
     }
 
-    function issuePunishment(targetId, payload) {
+    function updateGrade(targetId, nextGrade) {
       setState((current) => {
         const target = current.staff.find((member) => member.id === targetId);
-        if (!target || !canIssuePunishment(currentUser.rankKey, target.rankKey)) {
+        if (!target || !canChangeGrades(currentUser.rankKey, target.rankKey)) {
           return current;
         }
 
         return {
           ...current,
-          punishments: [
-            createPunishmentRecord({
-              ...payload,
-              targetId,
-              targetName: target.name,
-              issuedBy: currentUser.name
-            }),
-            ...current.punishments
-          ]
+          staff: current.staff.map((member) =>
+            member.id === targetId
+              ? { ...member, grade: Math.max(0, Math.min(100, Number(nextGrade) || 0)) }
+              : member
+          )
+        };
+      });
+    }
+
+    async function issuePunishment(targetId, payload) {
+      const target = state.staff.find((member) => member.id === targetId);
+      if (!target || !canIssuePunishment(currentUser.rankKey, target.rankKey)) {
+        return { ok: false };
+      }
+
+      const nextEntry = createPunishmentRecord({
+        targetId,
+        category: payload.category,
+        reason: payload.reason,
+        status: payload.status,
+        duration: payload.duration,
+        issuedById: currentUser.id
+      });
+
+      setState((current) => ({
+        ...current,
+        punishments: [nextEntry, ...current.punishments]
+      }));
+
+      await fetch("/api/discord/dm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          discordId: target.discordId,
+          message: `TLRP Notice: You received a ${payload.category}. Reason: ${payload.reason || "No reason provided."} Status: ${payload.status}. Duration: ${payload.duration}.`
+        })
+      });
+
+      return { ok: true };
+    }
+
+    function updateGuideline(id, content) {
+      setState((current) => {
+        if (!canEditGuidelines(currentUser.rankKey)) {
+          return current;
+        }
+
+        return {
+          ...current,
+          guidelines: current.guidelines.map((entry) =>
+            entry.id === id ? { ...entry, content } : entry
+          )
         };
       });
     }
 
     return {
       ...state,
+      visibleStaff,
       currentUser,
-      currentRank,
-      guidelines: GUIDELINES,
       leaderboard,
-      setActiveUserId,
+      abilities,
+      sessionState,
+      refreshSession,
+      logout,
       updateGrade,
       issuePunishment,
-      resetDemo
+      addLeaderboardPoints,
+      updateGuideline
     };
-  }, [state, hydrated]);
+  }, [state, sessionState]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 }

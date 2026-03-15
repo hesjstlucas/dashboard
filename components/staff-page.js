@@ -1,75 +1,94 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { PageFrame } from "@/components/page-frame";
 import { useDemo } from "@/components/demo-provider";
-import { canEditGrade } from "@/lib/permissions";
 
 export function StaffPage() {
-  const { staff, currentUser, updateGrade, resetDemo } = useDemo();
+  const { visibleStaff, currentUser } = useDemo();
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      return visibleStaff;
+    }
+
+    return visibleStaff.filter((member) =>
+      [member.displayName, member.department, member.rankKey, member.discordTag]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized)
+    );
+  }, [query, visibleStaff]);
 
   return (
     <PageFrame
-      title="Staff Grades"
-      description="RenWeb-style grade tracking for patrol activity, professionalism, and overall standing."
+      title="Staff Directory"
+      description="Search the team, review anonymous or linked profiles, and inspect rank, activity, grade, and review history."
     >
       <div className="panel stack">
         <div className="split">
           <div>
-            <h3>Gradebook</h3>
+            <h3>Roster Search</h3>
             <p className="muted">
-              Higher-ranked staff can edit the grades of staff beneath them.
+              Names are hidden until Discord login. Linked staff accounts see the full roster.
             </p>
           </div>
-          <button className="secondary" onClick={resetDemo} type="button">
-            Reset demo data
-          </button>
+          <div className="badge ok">{currentUser.rankKey === "guest" ? "Anonymous view" : "Linked view"}</div>
         </div>
-
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Staff member</th>
-                <th>Rank</th>
-                <th>Discord</th>
-                <th>ER:LC calls</th>
-                <th>Patrol hours</th>
-                <th>Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staff.map((member) => {
-                const editable = canEditGrade(currentUser.rankKey, member.rankKey);
-
-                return (
-                  <tr key={member.id}>
-                    <td>{member.name}</td>
-                    <td>{member.rankTitle}</td>
-                    <td>{member.discordTag}</td>
-                    <td>{member.erlcCalls}</td>
-                    <td>{member.patrolHours}</td>
-                    <td>
-                      {editable ? (
-                        <input
-                          aria-label={`Grade for ${member.name}`}
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={member.grade}
-                          onChange={(event) => updateGrade(member.id, event.target.value)}
-                          style={{ width: 90 }}
-                        />
-                      ) : (
-                        <span>{member.grade}%</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="toolbar">
+          <input
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search staff, role, department, or Discord tag"
+            value={query}
+          />
         </div>
       </div>
+
+      <section className="grid cols-2">
+        {filtered.map((member) => (
+          <article className="panel stack" key={member.id}>
+            <div className="split">
+              <div>
+                <div className="kicker">{member.rankKey}</div>
+                <h3>{member.displayName}</h3>
+                <p className="muted">
+                  {member.department} • {member.discordTag}
+                </p>
+              </div>
+              <span className="badge ok">Activity {member.activity}/10</span>
+            </div>
+            <div className="grid cols-3 mini-grid">
+              <div className="list-item">
+                <strong>{member.grade}%</strong>
+                <div className="muted">Grade</div>
+              </div>
+              <div className="list-item">
+                <strong>{member.leaderboardPoints}</strong>
+                <div className="muted">Points</div>
+              </div>
+              <div className="list-item">
+                <strong>{member.staffOfWeek}</strong>
+                <div className="muted">SOTW wins</div>
+              </div>
+            </div>
+            <div className="list">
+              <div className="list-item">Joined: {member.overview.joinedAt}</div>
+              <div className="list-item">Last patrol: {member.overview.lastPatrol}</div>
+              <div className="list-item">
+                Patrol hours: {member.overview.patrolHours} • Mod actions: {member.overview.moderationActions} • Admin actions: {member.overview.adminActions}
+              </div>
+              {member.reviews.map((review, index) => (
+                <div className="list-item" key={`${member.id}-${index}`}>
+                  <strong>{review.author}</strong>
+                  <div className="muted">{review.body}</div>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </section>
     </PageFrame>
   );
 }
