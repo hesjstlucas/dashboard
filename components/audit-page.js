@@ -20,7 +20,7 @@ export function AuditPage() {
                 <span className="muted">{entry.when}</span>
               </div>
               <div className="muted">
-                {entry.actor} -> {entry.target}
+                {entry.actor} {"->"} {entry.target}
               </div>
               <div>{entry.detail}</div>
             </div>
