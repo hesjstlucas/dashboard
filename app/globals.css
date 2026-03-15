@@ -412,6 +412,21 @@ th {
   resize: vertical;
 }
 
+.guideline-link-button {
+  min-width: 170px;
+}
+
+.guideline-link-row {
+  align-items: center;
+}
+
+.guideline-editor-action {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;

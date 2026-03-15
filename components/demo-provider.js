@@ -9,6 +9,7 @@ import {
   getPublicStaffView,
   initialState
 } from "@/lib/mock-data";
+import { createGuidelineLink, normalizeGuidelines } from "@/lib/guidelines";
 import {
   abilitySummary,
   canChangeGrades,
@@ -21,6 +22,14 @@ import {
 
 const STORAGE_KEY = "tlrp-dashboard-state-v5";
 const DemoContext = createContext(null);
+
+function hydrateState(savedState) {
+  return {
+    ...initialState,
+    ...savedState,
+    guidelines: normalizeGuidelines(savedState?.guidelines ?? initialState.guidelines)
+  };
+}
 
 function mergeStaffWithStoredValues(liveStaff, storedStaff) {
   const storedByDiscordId = new Map(storedStaff.map((member) => [member.discordId, member]));
@@ -68,7 +77,7 @@ export function DemoProvider({ children }) {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setState(JSON.parse(saved));
+        setState(hydrateState(JSON.parse(saved)));
       } catch {
         window.localStorage.removeItem(STORAGE_KEY);
       }
@@ -318,6 +327,80 @@ export function DemoProvider({ children }) {
       });
     }
 
+    function addGuidelineLink(guidelineId) {
+      setState((current) => {
+        if (!canEditGuidelines(currentUser.rankKey)) {
+          return current;
+        }
+
+        const next = {
+          ...current,
+          guidelines: current.guidelines.map((entry) =>
+            entry.id === guidelineId
+              ? { ...entry, links: [...entry.links, createGuidelineLink()] }
+              : entry
+          )
+        };
+
+        return addAuditAndActivity(
+          next,
+          "Guideline website added",
+          guidelineId,
+          "Directive added a handbook website button"
+        );
+      });
+    }
+
+    function updateGuidelineLink(guidelineId, linkId, field, value) {
+      if (!["label", "url"].includes(field)) {
+        return;
+      }
+
+      setState((current) => {
+        if (!canEditGuidelines(currentUser.rankKey)) {
+          return current;
+        }
+
+        return {
+          ...current,
+          guidelines: current.guidelines.map((entry) =>
+            entry.id === guidelineId
+              ? {
+                  ...entry,
+                  links: entry.links.map((link) =>
+                    link.id === linkId ? { ...link, [field]: value } : link
+                  )
+                }
+              : entry
+          )
+        };
+      });
+    }
+
+    function removeGuidelineLink(guidelineId, linkId) {
+      setState((current) => {
+        if (!canEditGuidelines(currentUser.rankKey)) {
+          return current;
+        }
+
+        const next = {
+          ...current,
+          guidelines: current.guidelines.map((entry) =>
+            entry.id === guidelineId
+              ? { ...entry, links: entry.links.filter((link) => link.id !== linkId) }
+              : entry
+          )
+        };
+
+        return addAuditAndActivity(
+          next,
+          "Guideline website removed",
+          guidelineId,
+          "Directive removed a handbook website button"
+        );
+      });
+    }
+
     return {
       ...state,
       visibleStaff,
@@ -331,7 +414,10 @@ export function DemoProvider({ children }) {
       updateGrade,
       issuePunishment,
       addLeaderboardPoints,
-      updateGuideline
+      updateGuideline,
+      addGuidelineLink,
+      updateGuidelineLink,
+      removeGuidelineLink
     };
   }, [state, sessionState]);
 
