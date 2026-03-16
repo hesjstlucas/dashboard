@@ -7,7 +7,7 @@ import { useDemo } from "@/components/demo-provider";
 import { CommandBar } from "@/components/command-bar";
 
 const links = [
-  { href: "/", label: "Overview" },
+  { href: "/portal", label: "Overview" },
   { href: "/staff", label: "Staff" },
   { href: "/grades", label: "Grades" },
   { href: "/activity", label: "Activity" },
