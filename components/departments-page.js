@@ -78,7 +78,7 @@ export function DepartmentsPage() {
         </div>
         <div className="hero-badges">
           <span className="badge ok">{members.length} members</span>
-          <span className="badge warn">{calls.length} live calls</span>
+          <span className="badge warn">{calls.length} calls</span>
           <span className="badge">{reports.length} reports</span>
         </div>
       </section>
@@ -96,7 +96,7 @@ export function DepartmentsPage() {
         </article>
 
         <article className="panel stack">
-          <h3>Live Call Queue</h3>
+          <h3>Call Queue</h3>
           <div className="list">
             {calls.length ? (
               calls.slice(0, 4).map((call) => (
@@ -107,7 +107,7 @@ export function DepartmentsPage() {
                 </div>
               ))
             ) : (
-              <div className="list-item">No live calls for this department right now.</div>
+              <div className="list-item">No calls for this department right now.</div>
             )}
           </div>
         </article>

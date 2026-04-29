@@ -3,15 +3,15 @@ import { DEPARTMENTS } from "@/lib/mock-data";
 
 const standards = [
   "Realistic call handling with clear incident notes and roleplay-safe escalation.",
-  "Player records attached to real player profiles from ER:LC API data or manual staff entry.",
+  "Player records attached to real player profiles added by staff.",
   "Separate dashboards for police, medical, DOT, and fire operations.",
   "Rank-gated controls for promotions, demotions, applications, records, and command tools."
 ];
 
 const workflow = [
   {
-    title: "Live server intake",
-    text: "The portal can ingest PRC API Players and JoinLogs so every seen player becomes searchable."
+    title: "Manual player intake",
+    text: "Staff can add players directly to the searchable vault when a record or report needs to be created."
   },
   {
     title: "Department records",
@@ -32,7 +32,7 @@ export default function HomePage() {
           <h1>Paralix</h1>
           <p className="hero-description">
             A dark, realistic public website and operations portal for emergency roleplay departments,
-            staff command, applications, live 911 calls, player records, and rank-based dashboards.
+            staff command, applications, manual 911 calls, player records, and rank-based dashboards.
           </p>
           <div className="hero-actions">
             <Link className="marketing-button marketing-button-primary" href="/portal">
@@ -51,11 +51,11 @@ export default function HomePage() {
           </div>
           <div className="ops-row">
             <span>911 calls</span>
-            <strong>Live API ready</strong>
+            <strong>Manual board</strong>
           </div>
           <div className="ops-row">
             <span>Player vault</span>
-            <strong>Players + JoinLogs</strong>
+            <strong>Staff entered</strong>
           </div>
           <div className="ops-row">
             <span>Criminal records</span>

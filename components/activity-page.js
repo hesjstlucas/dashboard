@@ -21,7 +21,7 @@ export function ActivityPage() {
             </div>
           ))
         ) : (
-          <div className="list-item">No live staff activity data is available yet.</div>
+          <div className="list-item">No staff activity data has been entered yet.</div>
         )}
       </section>
       <section className="panel stack">

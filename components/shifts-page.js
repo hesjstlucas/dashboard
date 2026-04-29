@@ -29,7 +29,7 @@ export function ShiftsPage() {
             </article>
           ))
         ) : (
-          <div className="list-item">No live shift schedule is connected yet.</div>
+          <div className="list-item">No shift schedule has been entered yet.</div>
         )}
       </div>
     </PageFrame>

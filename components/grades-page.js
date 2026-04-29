@@ -30,7 +30,7 @@ export function GradesPage() {
             <tbody>
               {!visibleStaff.length ? (
                 <tr>
-                  <td colSpan="6">No live staff records are available yet.</td>
+                  <td colSpan="6">No staff records are available yet.</td>
                 </tr>
               ) : null}
               {visibleStaff.map((member) => {

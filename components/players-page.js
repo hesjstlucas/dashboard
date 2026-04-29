@@ -67,7 +67,7 @@ function RecordList({ title, records, empty }) {
 }
 
 export function PlayersPage() {
-  const { abilities, players, addManualPlayer, addPlayerRecord, liveErlcState, refreshErlcData } = useDemo();
+  const { abilities, players, addManualPlayer, addPlayerRecord } = useDemo();
   const [query, setQuery] = useState("");
   const [selectedPlayerId, setSelectedPlayerId] = useState("");
   const [recordType, setRecordType] = useState("medicalRecords");
@@ -115,13 +115,13 @@ export function PlayersPage() {
   return (
     <PageFrame
       title="Player Search and Records"
-      description="Search every player seen by the ER:LC API, add manual players when needed, and attach department records without auto-generating criminals."
+      description="Search staff-entered players, add new players manually, and attach department records without auto-generating criminals."
     >
       <section className="grid cols-3">
         <article className="panel stat-card">
           <span className="kicker">Player vault</span>
           <strong>{players.length}</strong>
-          <span className="muted">Merged from live players, join logs, staff profiles, and manual entries.</span>
+          <span className="muted">Merged from staff profiles and manual entries.</span>
         </article>
         <article className="panel stat-card">
           <span className="kicker">Criminal records</span>
@@ -129,9 +129,9 @@ export function PlayersPage() {
           <span className="muted">Manual police records only. No automatic criminal labels.</span>
         </article>
         <article className="panel stat-card">
-          <span className="kicker">ER:LC sync</span>
-          <strong>{liveErlcState.configured ? "Live" : "Demo"}</strong>
-          <span className="muted">{liveErlcState.error || "Players and JoinLogs are pulled when the server key is set."}</span>
+          <span className="kicker">Player intake</span>
+          <strong>Manual</strong>
+          <span className="muted">Staff add players when they need records or department history.</span>
         </article>
       </section>
 
@@ -142,9 +142,6 @@ export function PlayersPage() {
               <h3>Player Search</h3>
               <p className="muted">Select a player before adding medical, police, DOT, or fire records.</p>
             </div>
-            <button className="secondary" onClick={refreshErlcData} type="button">
-              Refresh API
-            </button>
           </div>
           <div className="toolbar">
             <input
@@ -176,7 +173,7 @@ export function PlayersPage() {
         <form className="panel stack" onSubmit={submitManualPlayer}>
           <div>
             <h3>Add Player Manually</h3>
-            <p className="muted">Use this when a player needs records before the API has seen them.</p>
+            <p className="muted">Use this when a player needs records before they are already in the vault.</p>
           </div>
           <div className="toolbar vertical">
             <input
@@ -368,7 +365,7 @@ export function PlayersPage() {
           </form>
         </section>
       ) : (
-        <div className="list-item">No players are available yet. Add one manually or configure the ER:LC API key.</div>
+        <div className="list-item">No players are available yet. Add one manually to begin records.</div>
       )}
     </PageFrame>
   );

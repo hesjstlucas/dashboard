@@ -4,31 +4,21 @@ import { PageFrame } from "@/components/page-frame";
 import { useDemo } from "@/components/demo-provider";
 
 export function IntegrationsPage() {
-  const { integrations, liveErlcState, refreshErlcData } = useDemo();
+  const { integrations } = useDemo();
 
   return (
     <PageFrame
       title="Integrations"
-      description="Keep Discord, ER:LC API v2, records, and internal scoring systems visible in one configuration view."
+      description="Keep Discord login, local records, and internal scoring systems visible in one configuration view."
     >
       <section className="panel stack">
         <div className="split">
           <div>
-            <h3>ER:LC API Status</h3>
-            <p className="muted">
-              Add ERLC_API_KEY to load Players, JoinLogs, EmergencyCalls, ModCalls, Staff, Queue, CommandLogs, and Vehicles.
-            </p>
+            <h3>Manual Portal Mode</h3>
+            <p className="muted">Paralix now runs without any external server setup. Calls, players, records, reports, and command notes are all staff-entered.</p>
           </div>
-          <div className="inline-controls">
-            <span className={`badge ${liveErlcState.configured ? "ok" : "warn"}`}>
-              {liveErlcState.configured ? "Live" : "Demo"}
-            </span>
-            <button className="secondary" onClick={refreshErlcData} type="button">
-              Test API
-            </button>
-          </div>
+          <span className="badge ok">No key required</span>
         </div>
-        {liveErlcState.error ? <div className="list-item notice-banner">{liveErlcState.error}</div> : null}
       </section>
       <div className="grid cols-3">
         {integrations.map((integration) => (

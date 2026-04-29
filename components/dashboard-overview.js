@@ -37,12 +37,12 @@ function ConnectionCard({ title, endpoint }) {
             {state.loading
               ? "Checking connection..."
               : state.data?.configured
-                ? "Live integration detected."
-                : "Demo mode until environment variables are configured."}
+                ? "Integration detected."
+                : "Optional integration is not configured."}
           </p>
         </div>
         <span className={`badge ${state.data?.configured ? "ok" : "warn"}`}>
-          {state.data?.configured ? "Live" : "Demo"}
+          {state.data?.configured ? "Ready" : "Optional"}
         </span>
       </div>
       <pre className="muted compact-pre">
@@ -53,7 +53,7 @@ function ConnectionCard({ title, endpoint }) {
 }
 
 function CommandConsole() {
-  const { abilities } = useDemo();
+  const { abilities, recordCommandAction } = useDemo();
   const [command, setCommand] = useState("");
   const [result, setResult] = useState("");
 
@@ -68,25 +68,16 @@ function CommandConsole() {
     return output;
   }, [abilities]);
 
-  async function runCommand() {
-    const response = await fetch("/api/erlc/command", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        command,
-        audience: abilities.canRunAdminCommands ? "admin" : "moderation"
-      })
-    });
-    const data = await response.json();
-    setResult(data.result || data.error || data.data?.message || JSON.stringify(data));
+  function runCommand() {
+    setResult(recordCommandAction(command) || "No command note was saved.");
   }
 
   return (
     <div className="panel stack">
       <div className="split">
         <div>
-          <h3>ER:LC Command Center</h3>
-          <p className="muted">Command templates are filtered by the current website rank.</p>
+          <h3>Command Notes</h3>
+          <p className="muted">Save command-style notes for staff review without sending anything to the server.</p>
         </div>
         <span className="badge ok">{templates.length ? "Ready" : "Locked"}</span>
       </div>
@@ -101,11 +92,11 @@ function CommandConsole() {
         <input
           disabled={!templates.length}
           onChange={(event) => setCommand(event.target.value)}
-          placeholder="Enter an ER:LC command"
+          placeholder="Enter a command note"
           value={command}
         />
         <button disabled={!command} onClick={runCommand} type="button">
-          Run
+          Save
         </button>
       </div>
       {result ? <div className="list-item">{result}</div> : null}
@@ -123,7 +114,6 @@ export function DashboardOverview() {
     emergencyCalls,
     modCalls,
     erlcServer,
-    liveErlcState,
     departmentMembers
   } = useDemo();
   const pendingApplications = applications.filter((entry) => entry.status === "Pending").length;
@@ -132,17 +122,13 @@ export function DashboardOverview() {
   return (
     <PageFrame
       title="Command Overview"
-      description="A Paralix operations board for live ER:LC data, department dashboards, player records, applications, and rank-gated staff tools."
+      description="A Paralix operations board for manual calls, department dashboards, player records, applications, and rank-gated staff tools."
     >
       <section className="hero panel">
         <div>
           <div className="kicker">Current Account</div>
           <h3>{currentUser.displayName}</h3>
-          <p className="muted">
-            {liveErlcState.configured
-              ? `${erlcServer.name} is connected through the PRC API.`
-              : "Local director preview is active. Configure API and Discord env vars for production access."}
-          </p>
+          <p className="muted">{erlcServer.name} is running in manual portal mode. No ER:LC key is required.</p>
         </div>
         <div className="hero-badges">
           <span className="badge ok">{currentUser.rankKey}</span>
@@ -154,17 +140,17 @@ export function DashboardOverview() {
         <div className="panel stat-card">
           <span className="kicker">Seen players</span>
           <strong>{players.length}</strong>
-          <span className="muted">Searchable player vault from API, join logs, and manual entries.</span>
+          <span className="muted">Searchable player vault from staff-entered records.</span>
         </div>
         <div className="panel stat-card">
           <span className="kicker">911 calls</span>
           <strong>{emergencyCalls.length}</strong>
-          <span className="muted">EmergencyCalls data from the ER:LC API.</span>
+          <span className="muted">Manual emergency call board entries.</span>
         </div>
         <div className="panel stat-card">
           <span className="kicker">Mod calls</span>
           <strong>{modCalls.length}</strong>
-          <span className="muted">ModCalls data for the staff team.</span>
+          <span className="muted">Manual staff support requests.</span>
         </div>
         <div className="panel stat-card">
           <span className="kicker">Applications</span>
@@ -194,7 +180,7 @@ export function DashboardOverview() {
           <h3>Operational Guardrails</h3>
           <div className="list">
             <div className="list-item">Criminal records are manual only: {criminalRecords} saved right now.</div>
-            <div className="list-item">Players are merged from live Players and JoinLogs when the API key is configured.</div>
+            <div className="list-item">Players are added by staff when they need records or department history.</div>
             <div className="list-item">Management+ can promote or demote department members.</div>
             <div className="list-item">IA+ can review applications and staff discipline.</div>
           </div>
@@ -239,12 +225,12 @@ export function DashboardOverview() {
       </section>
 
       <section className="grid cols-2">
-        <ConnectionCard endpoint={ERLC_FULL_QUERY} title="ER:LC API" />
-        <ConnectionCard endpoint="/api/discord" title="Discord API" />
+        <div className="panel stack">
+          <h3>Manual Portal Mode</h3>
+          <p className="muted">The website runs without external server access. Staff create calls, player entries, records, applications, and reports directly in the dashboard.</p>
+        </div>
+        <ConnectionCard endpoint="/api/discord" title="Discord Login" />
       </section>
     </PageFrame>
   );
 }
-
-const ERLC_FULL_QUERY =
-  "/api/erlc?Players=true&Staff=true&JoinLogs=true&Queue=true&KillLogs=true&CommandLogs=true&ModCalls=true&EmergencyCalls=true&Vehicles=true";

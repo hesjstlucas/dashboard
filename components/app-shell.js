@@ -78,7 +78,7 @@ export function AppShell({ children }) {
           <Link href="/">
             <ParalixMark showText />
           </Link>
-          <p>Paralix live operations portal</p>
+          <p>Paralix operations portal</p>
         </div>
 
         <nav className="nav">

@@ -49,7 +49,7 @@ export function StaffPage() {
       ) : null}
 
       <section className="grid cols-2">
-        {!filtered.length ? <div className="list-item">No staff records match the current search or live sync state yet.</div> : null}
+        {!filtered.length ? <div className="list-item">No staff records match the current search yet.</div> : null}
         {filtered.map((member) => (
           <article className="panel stack" key={member.id}>
             <div className="split">

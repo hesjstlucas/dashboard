@@ -1,19 +1,20 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   buildLeaderboard,
   createActivityEntry,
   createApplicationRecord,
   createAuditEntry,
   createDepartmentReport,
+  createEmergencyCallRecord,
   createManualPlayer,
+  createModCallRecord,
   createPlayerRecord,
   createPunishmentRecord,
   getPublicStaffView,
   initialState,
-  mergePlayers,
-  normalizeErlcServerData
+  mergePlayers
 } from "@/lib/mock-data";
 import { createGuidelineLink, normalizeGuidelines } from "@/lib/guidelines";
 import {
@@ -31,8 +32,6 @@ import {
 
 const STORAGE_KEY = "paralix-operations-state-v1";
 const DemoContext = createContext(null);
-const ERLC_FULL_QUERY =
-  "/api/erlc?Players=true&Staff=true&JoinLogs=true&Queue=true&KillLogs=true&CommandLogs=true&ModCalls=true&EmergencyCalls=true&Vehicles=true";
 
 function hydrateState(savedState) {
   return {
@@ -88,11 +87,10 @@ export function DemoProvider({ children }) {
     configured: false,
     error: null
   });
-  const [liveErlcState, setLiveErlcState] = useState({
-    loaded: false,
-    loading: false,
-    configured: false,
-    source: "demo",
+  const [portalMode] = useState({
+    loaded: true,
+    configured: true,
+    source: "manual",
     error: null
   });
   const [sessionState, setSessionState] = useState({
@@ -120,53 +118,6 @@ export function DemoProvider({ children }) {
     }
   }, [state, storageLoaded]);
 
-  const refreshErlcData = useCallback(async () => {
-    setLiveErlcState((current) => ({
-      ...current,
-      loading: true,
-      error: null
-    }));
-
-    try {
-      const response = await fetch(ERLC_FULL_QUERY, { cache: "no-store" });
-      const data = await response.json();
-
-      setLiveErlcState({
-        loaded: true,
-        loading: false,
-        configured: Boolean(data.configured),
-        source: data.source || "demo",
-        error: data.error || null
-      });
-
-      if (data.configured && data.data) {
-        const normalized = normalizeErlcServerData(data.data);
-        setState((current) => ({
-          ...current,
-          players: mergePlayers(current.players, normalized.players),
-          emergencyCalls: normalized.emergencyCalls,
-          modCalls: normalized.modCalls,
-          erlcServer: normalized.server,
-          activityFeed: [
-            createActivityEntry(
-              "ER:LC API synced",
-              `${normalized.players.length} player sightings, ${normalized.emergencyCalls.length} emergency calls, ${normalized.modCalls.length} mod calls`
-            ),
-            ...current.activityFeed
-          ].slice(0, 40)
-        }));
-      }
-    } catch (error) {
-      setLiveErlcState({
-        loaded: true,
-        loading: false,
-        configured: false,
-        source: "demo",
-        error: error.message
-      });
-    }
-  }, []);
-
   useEffect(() => {
     let mounted = true;
 
@@ -192,10 +143,6 @@ export function DemoProvider({ children }) {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    refreshErlcData();
-  }, [refreshErlcData]);
 
   useEffect(() => {
     let mounted = true;
@@ -558,6 +505,55 @@ export function DemoProvider({ children }) {
       return true;
     }
 
+    function addEmergencyCall(payload) {
+      const call = createEmergencyCallRecord(payload, currentUser.displayName);
+      setState((current) =>
+        addAuditAndActivity(
+          {
+            ...current,
+            emergencyCalls: [call, ...current.emergencyCalls]
+          },
+          "911 call added",
+          call.id,
+          `${call.team} call ${call.callNumber} entered manually`
+        )
+      );
+      return call.id;
+    }
+
+    function addModCall(payload) {
+      const call = createModCallRecord(payload, currentUser.displayName);
+      setState((current) =>
+        addAuditAndActivity(
+          {
+            ...current,
+            modCalls: [call, ...current.modCalls]
+          },
+          "Mod call added",
+          call.id,
+          `${call.caller} requested staff: ${call.reason}`
+        )
+      );
+      return call.id;
+    }
+
+    function recordCommandAction(command) {
+      if (!command.trim()) {
+        return null;
+      }
+
+      setState((current) =>
+        addAuditAndActivity(
+          current,
+          "Command note saved",
+          currentUser.id,
+          `${currentUser.displayName} noted command: ${command}`
+        )
+      );
+
+      return `Saved local command note: ${command}`;
+    }
+
     function updateGuideline(id, content) {
       setState((current) => {
         if (!canEditGuidelines(currentUser.rankKey)) {
@@ -639,10 +635,10 @@ export function DemoProvider({ children }) {
       abilities,
       localPreview,
       liveStaffState,
-      liveErlcState,
+      portalMode,
+      liveErlcState: portalMode,
       sessionState,
       refreshSession,
-      refreshErlcData,
       logout,
       updateGrade,
       issuePunishment,
@@ -654,12 +650,15 @@ export function DemoProvider({ children }) {
       promoteDepartmentMember,
       demoteDepartmentMember,
       addDepartmentReport,
+      addEmergencyCall,
+      addModCall,
+      recordCommandAction,
       updateGuideline,
       addGuidelineLink,
       updateGuidelineLink,
       removeGuidelineLink
     };
-  }, [state, sessionState, liveStaffState, liveErlcState, refreshErlcData]);
+  }, [state, sessionState, liveStaffState, portalMode]);
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 }
