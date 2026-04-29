@@ -5,7 +5,7 @@ import { erlcCommandTemplates } from "@/lib/mock-data";
 import { useDemo } from "@/components/demo-provider";
 
 export function CommandBar() {
-  const { abilities } = useDemo();
+  const { abilities, recordCommandAction } = useDemo();
   const [query, setQuery] = useState("");
   const [result, setResult] = useState("");
 
@@ -40,17 +40,7 @@ export function CommandBar() {
       return;
     }
 
-    const response = await fetch("/api/erlc/command", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        command: selectedCommand,
-        audience: abilities.canRunAdminCommands ? "admin" : "moderation"
-      })
-    });
-
-    const data = await response.json();
-    setResult(data.result || data.error || JSON.stringify(data));
+    setResult(recordCommandAction(selectedCommand) || "No command note was saved.");
     setQuery(selectedCommand);
   }
 
@@ -74,7 +64,7 @@ export function CommandBar() {
               submit();
             }
           }}
-          placeholder={commands.length ? "Search commands..." : "Log in with Discord to use commands"}
+          placeholder={commands.length ? "Search command notes..." : "Link Discord or use local preview to save command notes"}
           value={query}
         />
         <datalist id="command-suggestions">

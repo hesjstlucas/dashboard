@@ -68,7 +68,7 @@ export async function GET() {
               : member.user?.username || "unknown",
           avatar: getAvatarUrl(member.user),
           displayName,
-          codename: `TLRP-${String(index + 1).padStart(3, "0")}`,
+          codename: `PX-${String(index + 1).padStart(3, "0")}`,
           rankKey,
           department: rank.label,
           grade: null,

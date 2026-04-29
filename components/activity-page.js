@@ -9,7 +9,7 @@ export function ActivityPage() {
   return (
     <PageFrame
       title="Activity"
-      description="Track recent staff actions, portal updates, and high-level movement across the TLRP team."
+      description="Track recent staff actions, portal updates, and high-level movement across the Paralix team."
     >
       <section className="grid cols-3">
         {visibleStaff.length ? (
@@ -21,7 +21,7 @@ export function ActivityPage() {
             </div>
           ))
         ) : (
-          <div className="list-item">No live staff activity data is available yet.</div>
+          <div className="list-item">No staff activity data has been entered yet.</div>
         )}
       </section>
       <section className="panel stack">

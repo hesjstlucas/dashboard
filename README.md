@@ -1,42 +1,37 @@
-# TLRP ER:LC Dashboard
+# Paralix ER:LC Operations Portal
 
-A Next.js staff portal for TLRP with:
+A Next.js website and staff dashboard for a realistic ER:LC community. This version does not require external server credentials.
 
-- A fuller Melonly-style multi-page operations portal
-- Staff overview and roster search
-- Grades tab
-- Activity, shifts, audit logs, LOA, integrations, and settings pages
-- Leaderboard with staff reviews, Staff of the Week counts, activity, and points
-- Punishment logging with Discord DM notifications
-- ER:LC moderation and admin command launcher
-- Rank matrix for Moderation, Administration, IA, Management, and Directive
-- Directive-only guideline editing
-- Discord role-group based permissions using the user's highest matching role
+## Included
+
+- Public Paralix website with department info and application entry points
+- Police, medical, DOT, and fire department dashboards
+- Manual player search and player intake
+- Patient intake records with age, disabilities, allergies, description, treatment, and status
+- Police records that are manual only, so nobody is marked criminal unless staff saves a record
+- DOT and fire record sections
+- Manual 911 calls and moderator calls
+- Applications queue with IA+ review controls
+- Staff leaderboard, grades, punishments, ranks, audit logs, LOA, shifts, settings, and guidelines
+- Rank-gated promotion and demotion tools for department members
+- Optional Discord OAuth role mapping for production permissions
 
 ## Run locally
 
-1. Install dependencies:
-
 ```bash
 npm install
-```
-
-2. Start the dev server:
-
-```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000).
+
+If Discord OAuth is not configured, the site enables a local Director preview so you can test the full dashboard.
 
 ## Environment variables
 
-Create `.env.local` if you want live integrations:
+Only Discord login needs environment variables. The portal itself works without them.
 
 ```bash
-ERLC_API_BASE_URL=
-ERLC_API_KEY=
-ERLC_COMMAND_ENDPOINT=
 DISCORD_GUILD_ID=
 DISCORD_BOT_TOKEN=
 DISCORD_CLIENT_ID=
@@ -44,9 +39,7 @@ DISCORD_CLIENT_SECRET=
 SESSION_SECRET=
 ```
 
-`DISCORD_REDIRECT_URI` is optional now. If you leave it unset, the app uses the current site origin automatically, which is helpful for custom domains like `staff.tlrpx.com`.
-
-If those are not set, the dashboard uses built-in mock data so the UI still works during local development. The Discord OAuth routes are still present for later, but the current portal UI does not depend on login.
+The player vault, calls, applications, and records are kept in browser storage during local/demo use. For a real production server, connect these actions to a database so every staff member shares the same records.
 
 ## Discord role groups
 
@@ -58,16 +51,7 @@ Edit [discord-role-groups.js](/C:/Users/heher/Documents/Playground/erlc-dashboar
 - `management`
 - `directive`
 
-When a user logs in, the app reads their Discord guild roles and assigns the highest matching group as their website rank.
-
-For this to work in production, make sure these Vercel env vars are set too:
-
-- `DISCORD_GUILD_ID`
-- `DISCORD_BOT_TOKEN`
-
-## Important note
-
-The portal currently stores roster, grades, punishments, guidelines, and module content in local browser state. For a production community portal, connect those actions to a real database before using it as your live staff source of truth.
+When a user logs in, the app reads their Discord guild roles and assigns the highest matching website rank.
 
 ## Test
 

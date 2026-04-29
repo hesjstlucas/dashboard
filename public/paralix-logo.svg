@@ -1,0 +1,9 @@
+<svg width="520" height="150" viewBox="0 0 520 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="520" height="150" rx="8" fill="#0B1018"/>
+  <path d="M76 18L126 36V75C126 108 106 130 76 140C46 130 26 108 26 75V36L76 18Z" fill="#101821" stroke="#DCE7F7" stroke-width="4"/>
+  <path d="M76 30L114 44V75C114 99 99 116 76 125C53 116 38 99 38 75V44L76 30Z" fill="#65A8FF"/>
+  <path d="M56 54H82C96 54 104 62 104 74C104 86 96 94 82 94H71V110H56V54Z" fill="#091018"/>
+  <path d="M71 67V81H82C86 81 89 78 89 74C89 70 86 67 82 67H71Z" fill="#F8FBFF"/>
+  <text x="152" y="93" fill="#EEF3F8" font-family="Bahnschrift, Segoe UI, Arial, sans-serif" font-size="58" font-weight="800">Paralix</text>
+  <text x="156" y="122" fill="#A0ADBA" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">ER:LC OPERATIONS</text>
+</svg>

@@ -47,7 +47,7 @@ export function PunishmentsPage() {
               <option value="">Select target</option>
               {eligibleTargets.map((member) => (
                 <option key={member.id} value={member.id}>
-                  {member.displayName} • {member.rankKey}
+                  {member.displayName} | {member.rankKey}
                 </option>
               ))}
             </select>

@@ -25,7 +25,7 @@ export function StaffPage() {
   return (
     <PageFrame
       title="Staff Directory"
-      description="Search the team and inspect rank, activity, grade, review history, and staff overview details."
+      description="Search the staff team and inspect rank, activity, grade, review history, and department responsibility."
     >
       <div className="panel stack">
         <div className="split">
@@ -45,11 +45,11 @@ export function StaffPage() {
       </div>
 
       {!liveStaffState.configured ? (
-        <div className="list-item notice-banner">Discord guild staff sync is not configured yet, so no live staff roster is available.</div>
+        <div className="list-item notice-banner">Discord guild staff sync is not configured yet. The portal is showing the local Paralix command roster.</div>
       ) : null}
 
       <section className="grid cols-2">
-        {!filtered.length ? <div className="list-item">No staff records match the current search or live sync state yet.</div> : null}
+        {!filtered.length ? <div className="list-item">No staff records match the current search yet.</div> : null}
         {filtered.map((member) => (
           <article className="panel stack" key={member.id}>
             <div className="split">
