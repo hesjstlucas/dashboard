@@ -9,7 +9,7 @@ export function LeaderboardPage() {
   return (
     <PageFrame
       title="Leaderboard"
-      description="Compare grades, written staff reviews, Staff of the Week wins, activity scores, and leaderboard points across the TLRP team."
+      description="Compare grades, written staff reviews, Staff of the Week wins, activity scores, and leaderboard points across the Paralix team."
     >
       <div className="panel">
         <div className="table-wrap">

@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PageFrame } from "@/components/page-frame";
 import { useDemo } from "@/components/demo-provider";
-import { erlcCommandTemplates } from "@/lib/mock-data";
+import { DEPARTMENTS, erlcCommandTemplates } from "@/lib/mock-data";
 
 function ConnectionCard({ title, endpoint }) {
   const [state, setState] = useState({ loading: true });
@@ -37,7 +38,7 @@ function ConnectionCard({ title, endpoint }) {
               ? "Checking connection..."
               : state.data?.configured
                 ? "Live integration detected."
-                : "Demo response until environment variables are configured."}
+                : "Demo mode until environment variables are configured."}
           </p>
         </div>
         <span className={`badge ${state.data?.configured ? "ok" : "warn"}`}>
@@ -77,7 +78,7 @@ function CommandConsole() {
       })
     });
     const data = await response.json();
-    setResult(data.result || data.error || JSON.stringify(data));
+    setResult(data.result || data.error || data.data?.message || JSON.stringify(data));
   }
 
   return (
@@ -85,9 +86,9 @@ function CommandConsole() {
       <div className="split">
         <div>
           <h3>ER:LC Command Center</h3>
-          <p className="muted">Available command templates are filtered by your currently linked staff rank.</p>
+          <p className="muted">Command templates are filtered by the current website rank.</p>
         </div>
-        <span className="badge ok">Ready</span>
+        <span className="badge ok">{templates.length ? "Ready" : "Locked"}</span>
       </div>
       <div className="chip-row">
         {templates.map((template) => (
@@ -104,7 +105,7 @@ function CommandConsole() {
           value={command}
         />
         <button disabled={!command} onClick={runCommand} type="button">
-          Run command
+          Run
         </button>
       </div>
       {result ? <div className="list-item">{result}</div> : null}
@@ -113,26 +114,34 @@ function CommandConsole() {
 }
 
 export function DashboardOverview() {
-  const { visibleStaff, punishments, currentUser, activityFeed, shifts, integrations, liveStaffState } = useDemo();
-  const activeCases = punishments.filter((entry) => entry.status === "Active").length;
-  const gradedStaff = visibleStaff.filter((member) => typeof member.grade === "number");
-  const averageGrade = gradedStaff.length
-    ? Math.round(gradedStaff.reduce((total, member) => total + member.grade, 0) / gradedStaff.length)
-    : null;
+  const {
+    visibleStaff,
+    players,
+    applications,
+    currentUser,
+    activityFeed,
+    emergencyCalls,
+    modCalls,
+    erlcServer,
+    liveErlcState,
+    departmentMembers
+  } = useDemo();
+  const pendingApplications = applications.filter((entry) => entry.status === "Pending").length;
+  const criminalRecords = players.reduce((total, player) => total + player.criminalRecords.length, 0);
 
   return (
     <PageFrame
-      title="Staff Overview"
-      description="A Melonly-style TLRP operations board with staff modules, ER:LC command tools, activity tracking, and rank-aware controls."
+      title="Command Overview"
+      description="A Paralix operations board for live ER:LC data, department dashboards, player records, applications, and rank-gated staff tools."
     >
       <section className="hero panel">
         <div>
           <div className="kicker">Current Account</div>
           <h3>{currentUser.displayName}</h3>
           <p className="muted">
-            {liveStaffState.configured
-              ? "Live Discord staff data is connected. Missing values stay empty until a real source updates them."
-              : "Connect Discord guild data to load the live staff roster instead of demo placeholders."}
+            {liveErlcState.configured
+              ? `${erlcServer.name} is connected through the PRC API.`
+              : "Local director preview is active. Configure API and Discord env vars for production access."}
           </p>
         </div>
         <div className="hero-badges">
@@ -143,52 +152,51 @@ export function DashboardOverview() {
 
       <section className="grid cols-4">
         <div className="panel stat-card">
-          <span className="kicker">Staff tracked</span>
-          <strong>{visibleStaff.length}</strong>
-          <span className="muted">Roster entries in the current dashboard state.</span>
+          <span className="kicker">Seen players</span>
+          <strong>{players.length}</strong>
+          <span className="muted">Searchable player vault from API, join logs, and manual entries.</span>
         </div>
         <div className="panel stat-card">
-          <span className="kicker">Average grade</span>
-          <strong>{averageGrade === null ? "--" : `${averageGrade}%`}</strong>
-          <span className="muted">Overall staff grade average from real recorded grade values.</span>
+          <span className="kicker">911 calls</span>
+          <strong>{emergencyCalls.length}</strong>
+          <span className="muted">EmergencyCalls data from the ER:LC API.</span>
         </div>
         <div className="panel stat-card">
-          <span className="kicker">Active punishments</span>
-          <strong>{activeCases}</strong>
-          <span className="muted">Open strikes, suspensions, and infractions.</span>
+          <span className="kicker">Mod calls</span>
+          <strong>{modCalls.length}</strong>
+          <span className="muted">ModCalls data for the staff team.</span>
         </div>
         <div className="panel stat-card">
-          <span className="kicker">Operator activity</span>
-          <strong>{typeof currentUser.activity === "number" ? `${currentUser.activity}/10` : "--"}</strong>
-          <span className="muted">Current activity score for the active Discord-linked account.</span>
+          <span className="kicker">Applications</span>
+          <strong>{pendingApplications}</strong>
+          <span className="muted">Pending department applications.</span>
         </div>
       </section>
 
-      {liveStaffState.error ? (
-        <div className="list-item notice-banner">Live Discord roster failed to load: {liveStaffState.error}</div>
-      ) : null}
+      <section className="grid cols-4">
+        {DEPARTMENTS.map((department) => (
+          <Link
+            className="department-card compact"
+            href="/departments"
+            key={department.id}
+            style={{ "--department-accent": department.accent }}
+          >
+            <div className="department-chip">{department.shortName}</div>
+            <strong>{departmentMembers.filter((member) => member.departmentId === department.id).length} members</strong>
+            <p>{department.modules.slice(0, 2).join(" | ")}</p>
+          </Link>
+        ))}
+      </section>
 
       <section className="grid cols-2">
         <CommandConsole />
         <div className="panel stack">
-          <h3>Portal Snapshot</h3>
+          <h3>Operational Guardrails</h3>
           <div className="list">
-            {shifts.slice(0, 2).map((shift) => (
-              <div className="list-item" key={shift.id}>
-                <strong>{shift.name}</strong>
-                <div className="muted">
-                  {shift.window} | {shift.status} | {shift.seats}
-                </div>
-              </div>
-            ))}
-            {integrations.slice(0, 2).map((integration) => (
-              <div className="list-item" key={integration.id}>
-                <strong>{integration.title}</strong>
-                <div className="muted">
-                  {integration.status} | {integration.description}
-                </div>
-              </div>
-            ))}
+            <div className="list-item">Criminal records are manual only: {criminalRecords} saved right now.</div>
+            <div className="list-item">Players are merged from live Players and JoinLogs when the API key is configured.</div>
+            <div className="list-item">Management+ can promote or demote department members.</div>
+            <div className="list-item">IA+ can review applications and staff discipline.</div>
           </div>
         </div>
       </section>
@@ -198,7 +206,7 @@ export function DashboardOverview() {
           <h3>Recent Activity</h3>
           <div className="list">
             {activityFeed.length ? (
-              activityFeed.slice(0, 4).map((item) => (
+              activityFeed.slice(0, 5).map((item) => (
                 <div className="list-item" key={item.id}>
                   <strong>{item.title}</strong>
                   <div className="muted">
@@ -207,24 +215,36 @@ export function DashboardOverview() {
                 </div>
               ))
             ) : (
-              <div className="list-item">No real activity entries have been recorded yet.</div>
+              <div className="list-item">No activity entries have been recorded yet.</div>
             )}
           </div>
         </div>
         <div className="panel stack">
           <h3>Quick Routes</h3>
-          <div className="list">
-            <div className="list-item">Staff, Grades, and Leaderboard keep your performance loop in one place.</div>
-            <div className="list-item">Activity, Shifts, Audit Logs, and LOA fill out the Melonly-style portal structure.</div>
-            <div className="list-item">Integrations and Settings keep Discord and ER:LC wiring visible.</div>
+          <div className="quick-route-grid">
+            <Link className="list-item" href="/calls">
+              911 and mod calls
+            </Link>
+            <Link className="list-item" href="/players">
+              Player records
+            </Link>
+            <Link className="list-item" href="/applications">
+              Applications
+            </Link>
+            <Link className="list-item" href="/ranks">
+              Rank permissions
+            </Link>
           </div>
         </div>
       </section>
 
       <section className="grid cols-2">
-        <ConnectionCard endpoint="/api/erlc" title="ER:LC API" />
+        <ConnectionCard endpoint={ERLC_FULL_QUERY} title="ER:LC API" />
         <ConnectionCard endpoint="/api/discord" title="Discord API" />
       </section>
     </PageFrame>
   );
 }
+
+const ERLC_FULL_QUERY =
+  "/api/erlc?Players=true&Staff=true&JoinLogs=true&Queue=true&KillLogs=true&CommandLogs=true&ModCalls=true&EmergencyCalls=true&Vehicles=true";

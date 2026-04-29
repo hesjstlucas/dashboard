@@ -3,24 +3,36 @@ import { getErlcSummary } from "@/lib/mock-data";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const resource = searchParams.get("resource") || "server-status";
-  const baseUrl = process.env.ERLC_API_BASE_URL;
+  const baseUrl = process.env.ERLC_API_BASE_URL || "https://api.policeroleplay.community/v2";
   const apiKey = process.env.ERLC_API_KEY;
+  const globalApiKey = process.env.ERLC_GLOBAL_API_KEY;
 
-  if (!baseUrl || !apiKey) {
+  if (!apiKey) {
     return NextResponse.json({
       configured: false,
       source: "mock",
-      resource,
       data: getErlcSummary()
     });
   }
 
   try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/${resource}`, {
+    const endpoint = new URL(`${baseUrl.replace(/\/$/, "")}/server`);
+    for (const [key, value] of searchParams.entries()) {
+      endpoint.searchParams.set(key, value);
+    }
+
+    const headers = {
+      "server-key": apiKey,
+      Accept: "application/json"
+    };
+
+    if (globalApiKey) {
+      headers.Authorization = globalApiKey;
+    }
+
+    const response = await fetch(endpoint, {
       headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json"
+        ...headers
       },
       cache: "no-store"
     });
@@ -40,7 +52,6 @@ export async function GET(request) {
     return NextResponse.json({
       configured: true,
       source: "remote",
-      resource,
       data
     });
   } catch (error) {

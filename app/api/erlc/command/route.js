@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   const { command, audience } = await request.json();
-  const endpoint = process.env.ERLC_COMMAND_ENDPOINT;
+  const baseUrl = process.env.ERLC_API_BASE_URL || "https://api.policeroleplay.community/v2";
+  const endpoint = process.env.ERLC_COMMAND_ENDPOINT || `${baseUrl.replace(/\/$/, "")}/server/command`;
   const apiKey = process.env.ERLC_API_KEY;
+  const globalApiKey = process.env.ERLC_GLOBAL_API_KEY;
 
   if (!command) {
     return NextResponse.json({ error: "command is required." }, { status: 400 });
   }
 
-  if (!endpoint || !apiKey) {
+  if (!apiKey) {
     return NextResponse.json({
       executed: true,
       source: "mock",
@@ -18,12 +20,19 @@ export async function POST(request) {
   }
 
   try {
+    const headers = {
+      "server-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    };
+
+    if (globalApiKey) {
+      headers.Authorization = globalApiKey;
+    }
+
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
+      headers,
       body: JSON.stringify({ command }),
       cache: "no-store"
     });

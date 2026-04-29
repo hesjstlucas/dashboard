@@ -74,7 +74,7 @@ export function CommandBar() {
               submit();
             }
           }}
-          placeholder={commands.length ? "Search commands..." : "Log in with Discord to use commands"}
+          placeholder={commands.length ? "Search commands..." : "Link Discord or use local preview to run commands"}
           value={query}
         />
         <datalist id="command-suggestions">

@@ -1,202 +1,128 @@
-import { TLRPMark } from "@/components/tlrp-mark";
-
-const featureCards = [
-  {
-    title: "Scene-First Roleplay",
-    description:
-      "Every patrol is built around believable reactions, clear pacing, and staff who care more about quality than chaos."
-  },
-  {
-    title: "Welcoming Onboarding",
-    description:
-      "New players get structure without feeling boxed in, which makes it easier to learn server expectations fast."
-  },
-  {
-    title: "Organized Staff Flow",
-    description:
-      "Applications, announcements, and internal systems are laid out cleanly so members always know where to go next."
-  },
-  {
-    title: "Flexible Department Design",
-    description:
-      "Law enforcement, fire, communications, and civilian paths all fit together instead of fighting each other."
-  },
-  {
-    title: "Original TLRP Identity",
-    description:
-      "The page, wording, and branding are custom-built around TLRP so the site feels like your own project."
-  },
-  {
-    title: "Built To Launch",
-    description:
-      "This layout is ready to be pushed to GitHub, customized further, and connected to your real Discord and rules."
-  }
-];
+import Link from "next/link";
+import { DEPARTMENTS } from "@/lib/mock-data";
 
 const standards = [
-  {
-    title: "Respect the scene",
-    description: "Give other players room to contribute and keep interactions focused on collaborative storytelling."
-  },
-  {
-    title: "Keep it believable",
-    description: "Treat emergencies, pursuits, and investigations like they matter so scenes feel grounded and worth joining."
-  },
-  {
-    title: "Follow direction quickly",
-    description: "When staff step in, respond cleanly and move forward so the server stays smooth for everyone involved."
-  }
+  "Realistic call handling with clear incident notes and roleplay-safe escalation.",
+  "Player records attached to real player profiles from ER:LC API data or manual staff entry.",
+  "Separate dashboards for police, medical, DOT, and fire operations.",
+  "Rank-gated controls for promotions, demotions, applications, records, and command tools."
 ];
 
-const departments = [
+const workflow = [
   {
-    name: "Law Enforcement",
-    summary: "Structured patrols, clean traffic stops, and coordinated response standards."
+    title: "Live server intake",
+    text: "The portal can ingest PRC API Players and JoinLogs so every seen player becomes searchable."
   },
   {
-    name: "Fire & Rescue",
-    summary: "Medical calls, fire scenes, and teamwork-heavy moments that create variety across the city."
+    title: "Department records",
+    text: "Police, medical, DOT, and fire notes stay separate so a patient file never becomes a criminal file."
   },
   {
-    name: "Civilian Operations",
-    summary: "Business ideas, street-level stories, and creative scenes that help the world feel lived in."
-  },
-  {
-    name: "Staff & Communications",
-    summary: "Support, moderation, and dispatch-style structure that keeps the larger experience moving."
+    title: "Command review",
+    text: "Management and Directive ranks can promote, demote, approve applications, and review audit logs."
   }
-];
-
-const highlightStats = [
-  { value: "Original", label: "brand direction" },
-  { value: "4 lanes", label: "department focus" },
-  { value: "Scene-led", label: "community style" }
 ];
 
 export default function HomePage() {
   return (
     <div className="landing-page" id="top">
-      <section className="hero-section">
-        <div className="hero-copy">
-          <div className="hero-kicker">Structured ER:LC roleplay</div>
-          <h1>Build a TLRP homepage that feels polished, original, and ready to launch.</h1>
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <div className="hero-kicker">Professional ER:LC roleplay operations</div>
+          <h1>Paralix</h1>
           <p className="hero-description">
-            This design keeps the serious roleplay energy from your reference while changing the layout, wording, and
-            brand treatment so it stands on its own as a custom TLRP site.
+            A dark, realistic public website and operations portal for emergency roleplay departments,
+            staff command, applications, live 911 calls, player records, and rank-based dashboards.
           </p>
           <div className="hero-actions">
-            <a className="marketing-button marketing-button-primary" href="#discord">
-              Join Discord
-            </a>
-            <a className="marketing-button marketing-button-secondary" href="#rules">
-              Read Standards
-            </a>
-          </div>
-          <div className="hero-stats">
-            {highlightStats.map((stat) => (
-              <div className="hero-stat" key={stat.label}>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </div>
-            ))}
+            <Link className="marketing-button marketing-button-primary" href="/portal">
+              Open Portal
+            </Link>
+            <Link className="marketing-button marketing-button-secondary" href="/applications">
+              Apply Now
+            </Link>
           </div>
         </div>
 
-        <div className="hero-visual" aria-hidden="true">
-          <div className="hero-visual-glow hero-visual-glow-left" />
-          <div className="hero-visual-glow hero-visual-glow-right" />
-          <div className="hero-monogram">TLRP</div>
-          <div className="hero-brand-card">
-            <TLRPMark showText />
-            <p>Custom identity for your server landing page.</p>
+        <div className="ops-snapshot" aria-label="Paralix operations snapshot">
+          <div className="ops-snapshot-head">
+            <span className="status-dot" />
+            <strong>Command Snapshot</strong>
           </div>
-          <div className="hero-note hero-note-top">
-            <span className="note-label">Approach</span>
-            <strong>Fresh copy, same energy</strong>
+          <div className="ops-row">
+            <span>911 calls</span>
+            <strong>Live API ready</strong>
           </div>
-          <div className="hero-note hero-note-bottom">
-            <span className="note-label">Style</span>
-            <strong>Dark, clean, and launch-ready</strong>
+          <div className="ops-row">
+            <span>Player vault</span>
+            <strong>Players + JoinLogs</strong>
           </div>
-        </div>
-      </section>
-
-      <section className="marketing-section" id="why">
-        <div className="section-heading">
-          <span className="section-tag">Why TLRP</span>
-          <h2>A custom landing page that captures the vibe without copying the source.</h2>
-          <p>
-            The structure stays familiar and easy to navigate, but the wording, cards, brand mark, and composition are
-            rewritten so the site feels like its own project.
-          </p>
-        </div>
-        <div className="marketing-grid marketing-grid-three">
-          {featureCards.map((card) => (
-            <article className="marketing-card" key={card.title}>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="marketing-section marketing-section-split" id="rules">
-        <div className="section-heading">
-          <span className="section-tag">Rules</span>
-          <h2>Clear standards keep the roleplay strong.</h2>
-          <p>
-            Instead of filling the page with copied wording, this section gives you original baseline standards you can
-            expand into your full rules later.
-          </p>
-        </div>
-        <div className="rule-list">
-          {standards.map((rule, index) => (
-            <article className="rule-card" key={rule.title}>
-              <span className="rule-number">0{index + 1}</span>
-              <div>
-                <h3>{rule.title}</h3>
-                <p>{rule.description}</p>
-              </div>
-            </article>
-          ))}
+          <div className="ops-row">
+            <span>Criminal records</span>
+            <strong>Manual only</strong>
+          </div>
+          <div className="ops-row">
+            <span>Rank controls</span>
+            <strong>Management+</strong>
+          </div>
         </div>
       </section>
 
       <section className="marketing-section" id="departments">
         <div className="section-heading">
           <span className="section-tag">Departments</span>
-          <h2>Shape the city around departments that actually support each other.</h2>
+          <h2>Separate dashboards for every service line.</h2>
           <p>
-            These blocks give you a starting point for your main divisions and can be swapped with your real department
-            names at any time.
+            Each department has its own ranks, reports, member roster, and response view so your ER:LC
+            community feels organized like a real agency.
           </p>
         </div>
-        <div className="marketing-grid marketing-grid-two">
-          {departments.map((department) => (
-            <article className="department-card" key={department.name}>
-              <div className="department-chip">{department.name}</div>
-              <p>{department.summary}</p>
+        <div className="marketing-grid marketing-grid-four">
+          {DEPARTMENTS.map((department) => (
+            <article className="department-card" key={department.id} style={{ "--department-accent": department.accent }}>
+              <div className="department-chip">{department.shortName}</div>
+              <h3>{department.name}</h3>
+              <p>{department.mission}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="marketing-section" id="discord">
-        <div className="discord-panel">
-          <div className="discord-copy">
-            <span className="section-tag">Discord</span>
-            <h2>Hook this into your real invite and you are ready to publish.</h2>
-            <p>
-              The site is already wired with a clean call-to-action area. Swap the placeholder invite below with your
-              real Discord link when you are ready to put it on GitHub and deploy it.
-            </p>
-          </div>
-          <div className="discord-cta">
-            <a className="marketing-button marketing-button-primary" href="https://discord.gg/yourinvite">
-              discord.gg/yourinvite
-            </a>
-            <span className="discord-hint">Replace this placeholder with your actual server invite.</span>
-          </div>
+      <section className="marketing-section marketing-section-split" id="info">
+        <div className="section-heading">
+          <span className="section-tag">Info</span>
+          <h2>Built around serious records, not random labels.</h2>
+          <p>
+            The police side never invents criminals. Criminal records only appear when an authorized
+            staff member manually adds a report to a real player profile.
+          </p>
+        </div>
+        <div className="rule-list">
+          {standards.map((standard, index) => (
+            <article className="rule-card" key={standard}>
+              <span className="rule-number">0{index + 1}</span>
+              <p>{standard}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="marketing-section" id="apply">
+        <div className="section-heading">
+          <span className="section-tag">Workflow</span>
+          <h2>From public application to department command.</h2>
+          <p>
+            Applicants can submit department requests, command can review them, and accepted members
+            can be managed through department rank tools.
+          </p>
+        </div>
+        <div className="marketing-grid marketing-grid-three">
+          {workflow.map((item) => (
+            <article className="marketing-card" key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
+          ))}
         </div>
       </section>
     </div>

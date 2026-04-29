@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavLink } from "@/components/nav-link";
-import { TLRPMark } from "@/components/tlrp-mark";
+import { ParalixMark } from "@/components/paralix-mark";
 
 const dashboardLinks = [
-  { href: "/portal", label: "Overview" },
+  { href: "/portal", label: "Command" },
+  { href: "/departments", label: "Departments" },
+  { href: "/calls", label: "911 + Mod Calls" },
+  { href: "/players", label: "Player Records" },
+  { href: "/applications", label: "Applications" },
+  { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/ranks", label: "Ranks" },
   { href: "/staff", label: "Staff" },
   { href: "/grades", label: "Grades" },
   { href: "/activity", label: "Activity" },
@@ -14,8 +20,6 @@ const dashboardLinks = [
   { href: "/punishments", label: "Punishments" },
   { href: "/audit", label: "Audit Logs" },
   { href: "/loa", label: "LOA" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/ranks", label: "Ranks" },
   { href: "/guidelines", label: "Guidelines" },
   { href: "/integrations", label: "Integrations" },
   { href: "/settings", label: "Settings" }
@@ -23,9 +27,10 @@ const dashboardLinks = [
 
 const marketingLinks = [
   { href: "#top", label: "Home" },
-  { href: "#rules", label: "Rules" },
   { href: "#departments", label: "Departments" },
-  { href: "#discord", label: "Discord" }
+  { href: "#info", label: "Info" },
+  { href: "#apply", label: "Apply" },
+  { href: "/portal", label: "Portal" }
 ];
 
 export function AppShell({ children }) {
@@ -38,19 +43,25 @@ export function AppShell({ children }) {
         <header className="marketing-header">
           <div className="marketing-header-inner">
             <Link className="marketing-brand-link" href="/">
-              <TLRPMark showText />
+              <ParalixMark showText />
             </Link>
 
             <nav aria-label="Primary navigation" className="marketing-nav">
               {marketingLinks.map((link) => (
-                <a href={link.href} key={link.href}>
-                  {link.label}
-                </a>
+                link.href.startsWith("/") ? (
+                  <Link href={link.href} key={link.href}>
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a href={link.href} key={link.href}>
+                    {link.label}
+                  </a>
+                )
               ))}
             </nav>
 
-            <a className="marketing-header-cta" href="#discord">
-              Join
+            <a className="marketing-header-cta" href="#apply">
+              Apply
             </a>
           </div>
         </header>
@@ -65,9 +76,9 @@ export function AppShell({ children }) {
       <aside className="sidebar">
         <div className="brand">
           <Link href="/">
-            <TLRPMark showText />
+            <ParalixMark showText />
           </Link>
-          <p>TLRP operations portal</p>
+          <p>Paralix live operations portal</p>
         </div>
 
         <nav className="nav">

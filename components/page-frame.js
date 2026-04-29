@@ -7,7 +7,13 @@ import { useDemo } from "@/components/demo-provider";
 import { CommandBar } from "@/components/command-bar";
 
 const links = [
-  { href: "/portal", label: "Overview" },
+  { href: "/portal", label: "Command" },
+  { href: "/departments", label: "Departments" },
+  { href: "/calls", label: "Calls" },
+  { href: "/players", label: "Players" },
+  { href: "/applications", label: "Applications" },
+  { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/ranks", label: "Ranks" },
   { href: "/staff", label: "Staff" },
   { href: "/grades", label: "Grades" },
   { href: "/activity", label: "Activity" },
@@ -15,8 +21,6 @@ const links = [
   { href: "/punishments", label: "Punishments" },
   { href: "/audit", label: "Audit" },
   { href: "/loa", label: "LOA" },
-  { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/ranks", label: "Ranks" },
   { href: "/guidelines", label: "Guidelines" },
   { href: "/integrations", label: "Integrations" },
   { href: "/settings", label: "Settings" }
@@ -52,7 +56,7 @@ export function PageFrame({ title, description, children }) {
 
       <header className="page-header">
         <div>
-          <div className="kicker">TLRP Control Panel</div>
+          <div className="kicker">Paralix Control Panel</div>
           <h2>{title}</h2>
           <p>{description}</p>
         </div>
@@ -68,7 +72,7 @@ export function PageFrame({ title, description, children }) {
               ? `${abilities.rank.label} permissions | highest matching Discord role | ${currentUser.discordTag}`
               : sessionState.configured
                 ? "Login unlocks your staff identity and permissions."
-                : "Configure Discord OAuth env vars to enable login."}
+                : "Local director preview is active until Discord OAuth is configured."}
           </span>
           {isAuthenticated ? (
             <button className="secondary" onClick={logout} type="button">
